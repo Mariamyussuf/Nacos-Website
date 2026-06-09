@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F5F9F6;
+    color: #1A1A1A;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-nacos-green text-white font-semibold rounded-full shadow-nacos hover:bg-nacos-green-light transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-nacos-gold text-white font-semibold rounded-full shadow-gold hover:bg-nacos-gold-light transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 border-2 border-nacos-green text-nacos-green font-semibold rounded-full hover:bg-nacos-green hover:text-white transition-all duration-300;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-md hover:shadow-nacos transition-all duration-300;
+  }
+
+  .section-title {
+    @apply font-display text-3xl md:text-4xl font-bold text-nacos-green-dark;
+  }
+
+  .section-subtitle {
+    @apply text-gray-500 mt-3 max-w-2xl mx-auto text-base md:text-lg;
+  }
+
+  .nacos-badge {
+    @apply inline-block px-3 py-1 bg-nacos-green-muted text-nacos-green text-xs font-bold uppercase tracking-widest rounded-full;
+  }
+
+  .gold-badge {
+    @apply inline-block px-3 py-1 bg-amber-50 text-nacos-gold-dark text-xs font-bold uppercase tracking-widest rounded-full;
+  }
+}
+
+@layer utilities {
+  .text-gradient-nacos {
+    background: linear-gradient(135deg, #1A6B2F, #D4A017);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-nacos-pattern {
+    background-color: #0D3D1A;
+    background-image: radial-gradient(circle at 20% 50%, rgba(46, 139, 69, 0.3) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 20%, rgba(212, 160, 23, 0.2) 0%, transparent 40%);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-dark {
+    background: rgba(13, 61, 26, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(46, 139, 69, 0.3);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A6B2F;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E8B45;
+}
+
+/* Animated underline for nav links */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background: linear-gradient(90deg, #1A6B2F, #D4A017);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Particle-like decorative dots */
+.dot-pattern {
+  background-image: radial-gradient(circle, rgba(26, 107, 47, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Smooth card hover lift */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(26, 107, 47, 0.15);
+}
+
+/* Hero text shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.text-shimmer {
+  background: linear-gradient(90deg, #D4A017, #F0C040, #D4A017);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Section divider */
+.section-divider {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #1A6B2F, #D4A017);
+  border-radius: 2px;
+  margin: 16px auto;
+}
