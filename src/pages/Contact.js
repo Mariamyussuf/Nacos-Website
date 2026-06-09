@@ -217,17 +217,20 @@ const Contact = () => {
                   { label: "Instagram", icon: "📸", color: "hover:bg-pink-500 hover:text-white" },
                   { label: "LinkedIn", icon: "in", color: "hover:bg-blue-700 hover:text-white" },
                   { label: "WhatsApp", icon: "💬", color: "hover:bg-green-500 hover:text-white" },
-                ].map((s) => (
-                  <a
-                    key={s.label}
-                    href="#"
-                    aria-label={s.label}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 transition-all duration-200 ${s.color}`}
-                  >
-                    <span>{s.icon}</span>
-                    <span className="text-xs font-medium">{s.label}</span>
-                  </a>
-                ))}
+                ].map((s) => {
+                  return (
+                    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                    <a
+                      key={s.label}
+                      href="#"
+                      aria-label={s.label}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 transition-all duration-200 ${s.color}`}
+                    >
+                      <span>{s.icon}</span>
+                      <span className="text-xs font-medium">{s.label}</span>
+                    </a>
+                  );
+                })}
               </div>
             </motion.div>
           </div>
