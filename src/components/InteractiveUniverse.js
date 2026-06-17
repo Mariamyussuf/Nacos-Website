@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const GREEN = "#2D7A22";
-const GREEN_GLOW = "rgba(45, 122, 34, 0.2)";
 
 const WORLDS = [
   { id: "ai",       name: "AI & Intelligence",     tablerIcon: "ti-brain",       desc: "Generative AI, Machine Learning, Deep Learning, and Python models. We build intelligent agents and explore cognitive systems.", x: 15, y: 25 },

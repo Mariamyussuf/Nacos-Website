@@ -8,7 +8,6 @@ import seminarImg from "../assets/seminar.JPG";
 import labImg from "../assets/lab.JPG";
 import teachImg from "../assets/teach.JPG";
 
-const UPCOMING_EVENTS = [];
 
 const OUTGOING_EVENTS = [
   {
