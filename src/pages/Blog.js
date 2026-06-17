@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import BlogCard from "../components/BlogCard";
+import { Link } from "react-router-dom";
 
 const posts = [
   {
@@ -60,101 +61,130 @@ const posts = [
 ];
 
 const Blog = () => {
-  return (
-    <div className="pt-16 bg-nacos-green-muted/20 min-h-screen">
-      {/* ====== PAGE HEADER ====== */}
-      <section className="relative bg-nacos-pattern py-24 overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-nacos-gold/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-20 w-48 h-48 rounded-full bg-nacos-green-light/20 blur-2xl pointer-events-none" />
+  const [expandedPost, setExpandedPost] = useState(null);
+  const [blogPosts] = useState(() => {
+    const saved = localStorage.getItem("blogs");
+    return saved ? JSON.parse(saved) : posts;
+  });
 
+  return (
+    <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
+      {/* ====== PAGE HEADER ====== */}
+      <section className="relative py-24 z-10 overflow-hidden">
         <motion.div
           className="relative z-10 text-center max-w-4xl mx-auto px-6"
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <span className="inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full text-nacos-gold text-xs font-bold uppercase tracking-widest mb-6">
-            <span className="w-1.5 h-1.5 bg-nacos-gold rounded-full animate-pulse-slow" />
+          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-6">
             Updates & Stories
           </span>
-          <h1 className="font-display font-extrabold text-5xl text-white mb-6">
-            NACOS <span className="text-shimmer">Blog</span>
+          <h1 className="font-display font-medium text-5xl text-white mb-6 leading-tight">
+            NACOS <span className="font-medium text-[#2D7A22]">Blog</span>
           </h1>
-          <p className="text-gray-300 text-lg leading-relaxed">
+          <p className="text-[#888880] text-lg leading-relaxed max-w-2xl mx-auto font-light">
             News, event recaps, tech tips, and stories from NACOS Bells Chapter.
             Stay in the loop with everything happening in our community.
           </p>
         </motion.div>
       </section>
 
-      {/* ====== FEATURED POST ====== */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="relative card overflow-hidden mb-12 group cursor-pointer"
-        >
-          <div className="h-2 bg-gradient-to-r from-nacos-green via-nacos-gold to-nacos-green-light" />
-          <div className="p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <span className="gold-badge mb-4 inline-block">✨ Featured Post</span>
-              <h2 className="font-display font-extrabold text-nacos-green-dark text-3xl md:text-4xl leading-tight mb-4 group-hover:text-nacos-green transition-colors">
-                {posts[0].title}
-              </h2>
-              <p className="text-gray-500 leading-relaxed mb-6">{posts[0].excerpt}</p>
-              <div className="flex items-center gap-4 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-nacos-green flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">P</span>
-                  </div>
-                  <span>{posts[0].author}</span>
-                </div>
-                <span>·</span>
-                <span>{posts[0].date}</span>
-                <span>·</span>
-                <span>{posts[0].readTime}</span>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center justify-center">
-              <div className="w-48 h-48 rounded-full bg-nacos-pattern flex items-center justify-center shadow-nacos">
-                <span className="text-7xl">📰</span>
-              </div>
-            </div>
+      {/* ====== BLOG CONTENTS ====== */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+        {blogPosts.length === 0 ? (
+          <div className="text-center py-20 bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-xl max-w-2xl mx-auto">
+            <i className="ti ti-article-off text-4xl text-[#555550] mb-4 block" />
+            <p className="text-[#888880] text-sm font-light">No articles published at this coordinate yet.</p>
           </div>
-        </motion.div>
+        ) : (
+          <>
+            {/* Featured Post (First Item) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+              className="relative glow-card overflow-hidden mb-12 group cursor-pointer"
+              onClick={() => setExpandedPost(expandedPost === 0 ? null : 0)}
+            >
+              <div className="p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center">
+                <div className="relative z-10">
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-4 inline-block font-normal">✨ Featured Post</span>
+                  <h2 className="font-display font-medium text-[#F0EDE6] text-2xl md:text-3xl leading-tight mb-4 group-hover:text-white transition-colors">
+                    {blogPosts[0].title}
+                  </h2>
+                  <p className="text-[#888880] leading-relaxed mb-6 font-light text-[13px]">{blogPosts[0].excerpt}</p>
+                  <div className="flex items-center gap-4 text-xs text-[#888880] font-light">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
+                        <span className="text-[#F0EDE6] text-xs font-normal">P</span>
+                      </div>
+                      <span>{blogPosts[0].author}</span>
+                    </div>
+                    <span>·</span>
+                    <span>{blogPosts[0].date}</span>
+                    <span>·</span>
+                    <span>{blogPosts[0].readTime}</span>
+                  </div>
+                </div>
+                <div className="hidden md:flex items-center justify-center relative z-10">
+                  {blogPosts[0].image ? (
+                    <div className="w-64 h-40 rounded-xl border border-[rgba(255,255,255,0.07)] overflow-hidden">
+                      <img src={blogPosts[0].image} alt={blogPosts[0].title} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-48 h-48 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
+                      <i className="ti ti-news text-7xl text-[#555550]" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
 
-        {/* ====== BLOG GRID ====== */}
-        <div className="mb-8">
-          <span className="nacos-badge">All Posts</span>
-          <div className="section-divider" />
-        </div>
+            {/* All Other Posts */}
+            {blogPosts.length > 1 && (
+              <>
+                <div className="mb-12">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 font-normal">All Posts</p>
+                  <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)]" />
+                </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.slice(1).map((post, i) => (
-            <BlogCard key={i} {...post} delay={i * 0.07} />
-          ))}
-        </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {blogPosts.slice(1).map((post, i) => (
+                    <BlogCard
+                      key={i}
+                      {...post}
+                      image={post.image}
+                      delay={i * 0.05}
+                      expanded={expandedPost === i + 1}
+                      onToggle={() => setExpandedPost(expandedPost === i + 1 ? null : i + 1)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
       </section>
 
       {/* ====== NEWSLETTER CTA ====== */}
-      <section className="bg-white py-16">
+      <section className="relative z-10 py-16 border-t border-[rgba(255,255,255,0.07)] bg-[#111110]">
         <motion.div
           className="max-w-2xl mx-auto px-6 text-center"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <span className="nacos-badge mb-4 inline-block">Newsletter</span>
+          <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-4 inline-block font-normal">Newsletter</span>
           <h2 className="section-title mb-3">Never miss a post</h2>
-          <p className="section-subtitle mb-6">
+          <p className="section-subtitle mb-6 font-light">
             Get the latest news and updates from NACOS Bells Chapter straight to your inbox.
           </p>
-          <a href="/" className="btn-primary">
-            Subscribe to Newsletter ✉️
-          </a>
+          <Link to="/#newsletter" className="btn-primary">
+            Subscribe to Newsletter
+          </Link>
         </motion.div>
       </section>
     </div>

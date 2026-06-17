@@ -1,45 +1,37 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const ExecCard = ({ name, position, initials, color, delay = 0 }) => {
-  const gradients = [
-    "from-nacos-green to-nacos-green-light",
-    "from-nacos-gold-dark to-nacos-gold",
-    "from-emerald-700 to-emerald-500",
-    "from-amber-700 to-amber-500",
-    "from-teal-700 to-teal-500",
-    "from-green-800 to-green-600",
-  ];
-
-  const gradient = gradients[color % gradients.length];
-
+const ExecCard = ({ name, position, initials, delay = 0 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.5, delay }}
-      className="card card-hover p-6 flex flex-col items-center text-center group"
+      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay }}
+      className="glow-card p-6 flex flex-col items-center text-center group"
     >
-      {/* Avatar */}
+      {/* Avatar initials container */}
       <div
-        className={`w-20 h-20 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}
+        style={{
+          backgroundColor: "#1A1A17",
+          border: "0.5px solid rgba(255, 255, 255, 0.07)",
+        }}
+        className="w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105"
       >
-        <span className="text-white font-display font-bold text-xl">
+        <span className="text-[#F0EDE6] font-display font-medium text-lg">
           {initials}
         </span>
       </div>
 
       {/* Position badge */}
-      <span className="nacos-badge mb-3">{position}</span>
+      <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-3 font-normal">
+        {position}
+      </span>
 
       {/* Name */}
-      <h3 className="font-display font-bold text-nacos-green-dark text-base leading-snug">
+      <h3 className="font-display font-medium text-[#F0EDE6] text-sm leading-snug">
         {name}
       </h3>
-
-      {/* Decorative line */}
-      <div className="mt-3 w-8 h-0.5 bg-gradient-to-r from-nacos-green to-nacos-gold rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </motion.div>
   );
 };

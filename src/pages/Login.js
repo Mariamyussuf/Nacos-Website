@@ -43,48 +43,53 @@ const Login = () => {
   };
 
   return (
-    <div className="pt-16 bg-gray-50 min-h-screen flex items-center justify-center">
+    <div className="pt-16 bg-[#0A0A08] min-h-screen flex items-center justify-center text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
       <motion.div
-        className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow max-w-sm w-full"
-        initial={{ opacity: 0, y: -50 }}
+        className="bg-[#111110] border border-[rgba(255,255,255,0.07)] p-8 rounded-xl max-w-sm w-full relative overflow-hidden"
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <h2 className="text-2xl font-extrabold text-gray-900 text-center">Log In</h2>
+        <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-3 block text-center font-normal">Student Portal</span>
+        <h2 className="text-2xl font-display font-medium text-white text-center mb-6">Log In</h2>
+        
         {error && (
-          <div className="mt-4 text-red-600 text-center text-sm">{error}</div>
+          <div className="text-red-500 text-xs bg-red-500/5 border border-red-500/20 rounded-md p-3 text-center mb-4">
+            {error}
+          </div>
         )}
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <label className="block text-gray-700 font-medium">Matric Number</label>
+            <label className="block text-xs font-normal text-[#888880] mb-1.5 uppercase tracking-wide">Matric Number</label>
             <input
               type="text"
               name="matricNumber"
               value={credentials.matricNumber}
               onChange={handleChange}
-              className="w-full border-gray-300 rounded-md p-2 mt-1 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your matric number"
+              className="w-full px-4 py-2.5 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] text-sm placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]/40 transition-colors"
+              placeholder="e.g. 21/1000"
               required
             />
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <label className="block text-gray-700 font-medium">Password</label>
+            <label className="block text-xs font-normal text-[#888880] mb-1.5 uppercase tracking-wide">Password</label>
             <input
               type="password"
               name="password"
               value={credentials.password}
               onChange={handleChange}
-              className="w-full border-gray-300 rounded-md p-2 mt-1 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your password"
+              className="w-full px-4 py-2.5 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] text-sm placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]/40 transition-colors"
+              placeholder="••••••••"
               required
             />
           </motion.div>
@@ -92,11 +97,11 @@ const Login = () => {
           <motion.button
             type="submit"
             disabled={loading}
-            className={`w-full bg-blue-600 text-white py-2 rounded-md transition-transform transform hover:scale-105 hover:bg-blue-700 ${
+            className={`w-full bg-[#2D7A22] text-[#F0EDE6] py-2.5 rounded-md transition-colors hover:bg-[#3A9C2D] font-medium text-sm ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            whileHover={{ scale: loading ? 1 : 1.05 }}
-            whileTap={{ scale: loading ? 1 : 0.98 }}
+            whileHover={{ scale: loading ? 1 : 1.01 }}
+            whileTap={{ scale: loading ? 1 : 0.99 }}
             transition={{ duration: 0.2 }}
           >
             {loading ? "Logging in..." : "Log In"}

@@ -1,77 +1,144 @@
-import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";
 import { subscribe } from "../components/api";
+import { useToast } from "../components/Toast";
+import LogoStrip from "../components/LogoStrip";
+import TracksStrip from "../components/TracksStrip";
+import TracksDeepDive from "../components/TracksDeepDive";
+import InteractiveUniverse from "../components/InteractiveUniverse";
+import GlowCard from "../components/GlowCard";
+import NeonHeading from "../components/NeonHeading";
 
-/* ---------- Animated Counter ---------- */
-const Counter = ({ target, suffix = "", duration = 2000 }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
+// ─── Data ────────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          const step = target / (duration / 16);
-          let current = 0;
-          const timer = setInterval(() => {
-            current = Math.min(current + step, target);
-            setCount(Math.floor(current));
-            if (current >= target) clearInterval(timer);
-          }, 16);
-        }
-      },
-      { threshold: 0.5 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target, duration]);
+const STUDENT_PROJECTS = [
+  {
+    title: "Bells Course Planner",
+    type: "AI & Software",
+    desc: "An AI-powered academic advisor that maps optimal course pathways, class schedules, and graduation paths based on student performance.",
+    tags: ["Next.js", "Python", "FastAPI", "OpenAI"],
+    stars: 24,
+  },
+  {
+    title: "Lumina Creator Hub",
+    type: "Media & Videography",
+    desc: "A matching platform for student photographers, videographers, and editors to showcase portfolios and secure event coverage gigs at Bells.",
+    tags: ["React", "Cloudinary", "Node.js", "MongoDB"],
+    stars: 35,
+  },
+  {
+    title: "Nacos Space VR",
+    type: "3D & Design",
+    desc: "A virtual digital replica of the Bells department building. Students attend workshops and walk through lab spaces in VR.",
+    tags: ["Three.js", "WebXR", "React", "Blender"],
+    stars: 18,
+  },
+];
 
-  return (
-    <span ref={ref}>
-      {count.toLocaleString()}
-      {suffix}
-    </span>
-  );
+const GALLERY_ITEMS = [
+  {
+    title: "Eco-Crypt Data Cipher",
+    category: "Research",
+    desc: "Optimized cryptographic protocol for low-power IoT agricultural sensors on campus.",
+    badge: "Paper Published",
+  },
+  {
+    title: "FrameCut Video Library",
+    category: "Media Tools",
+    desc: "Open-source browser tool that auto-clips video lectures using AI-generated transcripts.",
+    badge: "Active Tool",
+  },
+  {
+    title: "Figma UI Kit v1.0",
+    category: "Design",
+    desc: "Accessible Design System and Component Library for educational and university web portals.",
+    badge: "120+ Downloads",
+  },
+  {
+    title: "Bells AI Bot Alpha",
+    category: "AI Systems",
+    desc: "Autonomous WhatsApp bot providing instant answers about timetables, class venues, and grades.",
+    badge: "Beta Active",
+  },
+];
+
+const TIMELINE_EVENTS = [
+  {
+    title: "NACOS Tech Fest '26",
+    date: "July 12–16, 2026",
+    venue: "Main Auditorium",
+    desc: "5 days of coding hackathons, photography contests, design showcases, and talks from tech and media executives.",
+    status: "upcoming",
+    category: "Festival",
+  },
+  {
+    title: "Bells Founders Pitch Night",
+    date: "August 24, 2026",
+    venue: "CIS Lecture Hall 2",
+    desc: "Pitch your tech or media startup idea to seed investors and win project development grants.",
+    status: "upcoming",
+    category: "Competition",
+  },
+  {
+    title: "UI/UX & Video Editing Bootcamp",
+    date: "May 10–28, 2026",
+    venue: "CIS Advanced Lab",
+    desc: "3-week intensive: Figma wireframing, Premiere/DaVinci cutting, lighting basics, and micro-animations.",
+    status: "past",
+    category: "Workshop",
+  },
+  {
+    title: "Creative Content Masterclass",
+    date: "April 18, 2026",
+    venue: "CIS Lecture Room 1",
+    desc: "Writing technical scripts, shooting developer vlogs, and editing tech media podcasts.",
+    status: "past",
+    category: "Workshop",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    name: "Tunde Alabi",
+    role: "Core Developer",
+    quote: "NACOS gave me my first open source PR approval, a community to review my code, and an internship lead — all in the same semester.",
+    handle: "@tunde.dev",
+  },
+  {
+    name: "Adaeze Okafor",
+    role: "Media Producer & Creator",
+    quote: "NACOS was the first community that valued technical video editing, photography, and visual branding as critical creative roles — not just extras.",
+    handle: "@adaeze.creates",
+  },
+  {
+    name: "Ibrahim Sani",
+    role: "Product Designer",
+    quote: "I don't write code, but designing Figma wireframes for the NACOS tech team boosted my portfolio enormously.",
+    handle: "@ibrahim.ux",
+  },
+];
+
+
+
+const KEYWORDS = ["Explore", "Build", "Design", "Research", "Shoot", "Edit", "Innovate"];
+
+const fadeUp = {
+  hidden:  { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 };
 
-/* ---------- Pill Feature ---------- */
-const FeaturePill = ({ icon, text }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.4 }}
-    className="flex items-center gap-2 glass px-4 py-2 rounded-full text-white/90 text-sm font-medium"
-  >
-    <span>{icon}</span>
-    <span>{text}</span>
-  </motion.div>
-);
+export default function Home() {
+  const showToast = useToast();
+  const [email,      setEmail]      = useState("");
+  const [message,    setMessage]    = useState(null);
+  const [tickerIdx,  setTickerIdx]  = useState(0);
 
-/* ---------- Why Card ---------- */
-const WhyCard = ({ icon, title, desc, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.2 }}
-    transition={{ duration: 0.5, delay }}
-    className="card card-hover p-8 flex flex-col gap-4"
-  >
-    <div className="w-14 h-14 rounded-2xl bg-nacos-green-muted flex items-center justify-center text-2xl">
-      {icon}
-    </div>
-    <h3 className="font-display font-bold text-nacos-green-dark text-xl">{title}</h3>
-    <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
-  </motion.div>
-);
-
-/* ---------- Home Page ---------- */
-const Home = () => {
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState(null);
+  // Rotating ticker
+  useEffect(() => {
+    const id = setInterval(() => setTickerIdx(i => (i + 1) % KEYWORDS.length), 2200);
+    return () => clearInterval(id);
+  }, []);
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -82,257 +149,373 @@ const Home = () => {
     }
     try {
       const result = await subscribe(email);
-      setMessage({ type: "success", text: result.message });
+      setMessage({ type: "success", text: result.message || "Successfully subscribed!" });
       setEmail("");
-    } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.message || "Failed to subscribe. Please try again later.",
-      });
+    } catch (err) {
+      setMessage({ type: "error", text: err.message || "Failed to subscribe. Try again." });
     }
   };
 
   return (
-    <div className="pt-16 bg-nacos-green-muted/30 min-h-screen">
+    <div className="bg-[#0A0A08] min-h-screen text-[#F0EDE6] overflow-x-hidden selection:bg-[#2D7A22] selection:text-[#F0EDE6] relative">
+
       {/* ====== HERO ====== */}
-      <section className="relative min-h-[92vh] bg-nacos-pattern flex items-center overflow-hidden">
-        {/* Decorative rings */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/5 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-white/5 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full border border-white/5 pointer-events-none" />
-
-        {/* Gold blob */}
-        <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-nacos-gold/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-56 h-56 rounded-full bg-nacos-green-light/20 blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16 items-center">
-          {/* Left: Text */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <span className="inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full text-nacos-gold text-xs font-bold uppercase tracking-widest mb-6">
-                <span className="w-1.5 h-1.5 bg-nacos-gold rounded-full animate-pulse-slow" />
-                Official Chapter — Bells University of Technology
-              </span>
-            </motion.div>
-
-            <motion.h1
-              className="font-display font-extrabold text-5xl md:text-6xl text-white leading-tight"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-            >
-              Nigerian Association of{" "}
-              <span className="text-shimmer">Computer Science</span> Students
-            </motion.h1>
-
-            <motion.p
-              className="mt-6 text-gray-300 text-lg leading-relaxed max-w-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              NACOS Bells Chapter — a vibrant community of tech students at Bells University
-              of Technology, Ota. We connect, innovate, and lead.
-            </motion.p>
-
-            <motion.div
-              className="flex flex-wrap gap-3 mt-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <Link to="/contact" className="btn-secondary">
-                Join NACOS 🚀
-              </Link>
-              <Link to="/events" className="btn-outline border-white/40 text-white hover:bg-white hover:text-nacos-green">
-                View Events
-              </Link>
-            </motion.div>
-
-            {/* Feature pills */}
-            <motion.div
-              className="flex flex-wrap gap-2 mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
-              <FeaturePill icon="🎓" text="Academic Excellence" />
-              <FeaturePill icon="💡" text="Innovation Hub" />
-              <FeaturePill icon="🤝" text="Strong Community" />
-            </motion.div>
+      <motion.section
+        initial="hidden" animate="visible"
+        variants={fadeUp}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+        style={{ padding: "120px 48px 80px" }}
+        className="relative min-h-screen flex flex-col justify-between bg-[#0A0A08] overflow-hidden"
+      >
+        <div className="flex-1 flex flex-col justify-center max-w-2xl mt-8">
+          {/* Eyebrow */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-5 h-[0.5px] bg-[#3A9C2D]" />
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#3A9C2D] font-normal">
+              NACOS — Bells University of Technology
+            </span>
           </div>
 
-          {/* Right: Logo */}
-          <motion.div
-            className="hidden md:flex justify-center"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-nacos-gold/20 blur-3xl scale-150" />
-              <img
-                src={logo}
-                alt="NACOS Logo"
-                className="relative w-72 h-72 object-contain drop-shadow-2xl animate-float"
-              />
-            </div>
-          </motion.div>
-        </div>
+          {/* Headline */}
+          <h1 className="font-display text-[#F0EDE6] text-[clamp(3rem,7vw,6rem)] font-light tracking-[-0.03em] leading-[1.05] mb-4">
+            NACOS <span className="font-medium">Bells.</span>
+          </h1>
 
-        {/* Bottom wave */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
-          <svg viewBox="0 0 1200 80" preserveAspectRatio="none" className="w-full h-12 md:h-20" fill="#F5F9F6" fillOpacity="0.15">
-            <path d="M0,40 C300,80 900,0 1200,40 L1200,80 L0,80 Z" />
-          </svg>
-        </div>
-      </section>
+          {/* Keyword Ticker */}
+          <div className="h-8 flex items-center gap-2 mb-8 text-sm font-light text-[#888880]">
+            <span>We exist to</span>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={tickerIdx}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="text-[#F0EDE6] font-display font-medium text-base"
+              >
+                {KEYWORDS[tickerIdx]}.
+              </motion.span>
+            </AnimatePresence>
+          </div>
 
-      {/* ====== STATS BAR ====== */}
-      <section className="bg-white shadow-sm py-10">
-        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { value: 200, suffix: "+", label: "Active Members" },
-            { value: 12, suffix: "+", label: "Events Hosted" },
-            { value: 3, suffix: " yrs", label: "Years Active" },
-            { value: 8, suffix: "+", label: "Projects" },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-            >
-              <p className="font-display font-extrabold text-4xl text-nacos-green">
-                <Counter target={stat.value} suffix={stat.suffix} />
-              </p>
-              <p className="text-gray-500 text-sm mt-1 font-medium">{stat.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ====== ABOUT NACOS ====== */}
-      <section className="py-20 max-w-7xl mx-auto px-6">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="nacos-badge">Who We Are</span>
-          <div className="section-divider" />
-          <h2 className="section-title">What is NACOS?</h2>
-          <p className="section-subtitle">
-            The Nigerian Association of Computer Science Students (NACOS) is the umbrella body for Computer Science
-            students across Nigeria. Our Bells Chapter represents and serves students of the Department of Computer
-            &amp; Information Sciences at Bells University of Technology.
+          {/* Subtext */}
+          <p className="text-[16px] font-light text-[#888880] max-w-[440px] leading-[1.7] mb-8">
+            Developing future-focused software engineering, design, and cybersecurity leaders at Bells University.
           </p>
-        </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <WhyCard
-            icon="🎯"
-            title="Our Mission"
-            desc="To foster academic excellence, professional development, and a strong sense of community among Computer Science students at Bells University."
-            delay={0}
-          />
-          <WhyCard
-            icon="🌍"
-            title="Our Vision"
-            desc="To be the most impactful chapter of NACOS in Nigeria — bridging the gap between students and the tech industry."
-            delay={0.1}
-          />
-          <WhyCard
-            icon="⚡"
-            title="Our Values"
-            desc="Innovation, integrity, collaboration, and excellence are the core values that guide everything NACOS Bells Chapter does."
-            delay={0.2}
-          />
+          {/* CTAs */}
+          <div className="flex items-center gap-6">
+            <Link
+              to="/contact"
+              style={{ background: "#2D7A22" }}
+              className="text-[#F0EDE6] hover:bg-[#3A9C2D] font-normal text-[13px] px-5 py-2.5 rounded-[6px] transition-colors duration-200"
+            >
+              Join NACOS
+            </Link>
+            <a
+              href="#tracks-deep-dive"
+              className="text-[#888880] hover:text-[#F0EDE6] transition-colors duration-200 text-[13px] font-normal flex items-center gap-1.5"
+            >
+              Explore tracks <span>→</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="flex items-end justify-between mt-auto pt-10">
+          {/* Bottom-left: Scroll hint */}
+          <div className="flex items-center gap-3">
+            <span className="w-10 h-[0.5px] bg-[#555550]" />
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">
+              Scroll to explore
+            </span>
+          </div>
+
+          {/* Bottom-right: Stats stack */}
+          <div className="flex flex-col items-end text-right space-y-4">
+            <div className="w-[120px] border-t-[0.5px] border-[rgba(255,255,255,0.07)] pt-3">
+              <p className="font-display font-light text-[28px] text-[#F0EDE6] leading-none mb-1">500+</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Members</p>
+            </div>
+            <div className="w-[120px] border-t-[0.5px] border-[rgba(255,255,255,0.07)] pt-3">
+              <p className="font-display font-light text-[28px] text-[#F0EDE6] leading-none mb-1">6</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Tracks</p>
+            </div>
+            <div className="w-[120px] border-t-[0.5px] border-[rgba(255,255,255,0.07)] pt-3">
+              <p className="font-display font-light text-[28px] text-[#F0EDE6] leading-none mb-1">2026/27</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Session</p>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ====== TRACKS STRIP ====== */}
+      <TracksStrip />
+
+      {/* ====== LOGO STRIP ====== */}
+      <LogoStrip />
+
+      {/* ====== TRACKS DEEP DIVE ====== */}
+      <div id="tracks-deep-dive">
+        <TracksDeepDive />
+      </div>
+
+      {/* ====== INTERACTIVE UNIVERSE ====== */}
+      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">The Map</span>
+            <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
+            <NeonHeading bright="Interactive Universe." dim="Technology is a living web of collaborative creativity. Select a node to explore connections." />
+          </div>
+          <InteractiveUniverse />
         </div>
       </section>
 
-      {/* ====== WHY JOIN ====== */}
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <span className="nacos-badge">Benefits</span>
-            <div className="section-divider" />
-            <h2 className="section-title">Why Join NACOS?</h2>
-            <p className="section-subtitle">
-              Being part of NACOS opens doors to opportunities you can't find anywhere else on campus.
-            </p>
-          </motion.div>
+      {/* ====== STUDENT PROJECTS ====== */}
+      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Student Builds</span>
+            <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
+            <NeonHeading bright="What Students Are Creating." dim="Real-world platforms, VR environments, and production tools built by Bells computing students." />
+          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: "🏆", title: "Competitions", desc: "Represent your department in hackathons, coding challenges, and tech competitions." },
-              { icon: "🤝", title: "Networking", desc: "Connect with industry professionals, alumni, and fellow tech enthusiasts." },
-              { icon: "📚", title: "Learning", desc: "Access workshops, seminars, and study resources tailored for CS students." },
-              { icon: "💼", title: "Career Growth", desc: "Internship leads, CV reviews, and interview prep from those who've been there." },
-            ].map((item, i) => (
-              <WhyCard key={i} {...item} delay={i * 0.1} />
+          <div className="grid md:grid-cols-3 gap-6">
+            {STUDENT_PROJECTS.map((project, idx) => (
+              <GlowCard key={idx} className="p-6 flex flex-col justify-between min-h-[340px]">
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-[10px] font-normal uppercase tracking-wider px-2 py-0.5 rounded border border-[rgba(255,255,255,0.07)] bg-white/[0.02] text-[#888880]">
+                      {project.type}
+                    </span>
+                    <span className="text-[#888880] text-xs flex items-center gap-1 font-light">
+                      <i className="ti ti-star-filled text-xs text-[#2D7A22]" /> {project.stars}
+                    </span>
+                  </div>
+                  <h3 className="font-display font-medium text-base text-[#F0EDE6] mb-2">{project.title}</h3>
+                  <p className="text-[#888880] text-xs leading-relaxed font-light">{project.desc}</p>
+                </div>
+
+                <div className="mt-6">
+                  <div className="flex flex-wrap gap-1.5 mb-5">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="text-[10px] font-normal px-2 py-0.5 rounded border border-[rgba(255,255,255,0.05)] bg-white/[0.01] text-[#555550]">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => showToast(`Details for ${project.title} coming soon!`, "info")}
+                    className="w-full py-2 rounded bg-white/[0.02] hover:bg-[#2D7A22] border border-[rgba(255,255,255,0.07)] hover:border-transparent text-[#888880] hover:text-white font-normal text-xs transition-colors duration-300"
+                  >
+                    Inspect Project →
+                  </button>
+                </div>
+              </GlowCard>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ====== CTA / NEWSLETTER ====== */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-nacos-gradient opacity-95" />
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-nacos-gold/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
+      {/* ====== INNOVATION GALLERY ====== */}
+      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Portfolio</span>
+            <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
+            <NeonHeading bright="Innovation Gallery." dim="Student-led tech startups, open-source initiatives, design systems, and published research papers." />
+          </div>
 
-        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {GALLERY_ITEMS.map((item, idx) => (
+              <GlowCard key={idx} className="p-5 flex flex-col justify-between min-h-[220px]">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] font-normal uppercase tracking-wider text-[#888880]">
+                      {item.category}
+                    </span>
+                    <span className="text-[10px] font-normal px-2 py-0.5 rounded-full border border-[rgba(255,255,255,0.07)] bg-white/[0.02] text-[#888880]">
+                      {item.badge}
+                    </span>
+                  </div>
+                  <h3 className="font-display font-medium text-[#F0EDE6] text-sm mb-2">{item.title}</h3>
+                  <p className="text-[#888880] text-xs leading-relaxed font-light">{item.desc}</p>
+                </div>
+                <button
+                  className="text-xs font-normal mt-4 text-left text-[#888880] hover:text-[#F0EDE6] transition-colors"
+                  onClick={() => showToast(`Case study for ${item.title} coming soon!`, "info")}
+                >
+                  Read Case Study →
+                </button>
+              </GlowCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ====== EVENTS TIMELINE ====== */}
+      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Calendar</span>
+            <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
+            <NeonHeading bright="Events in Motion." dim="Stay track-aligned with hackathons, professional bootcamps, pitch nights, and masterclasses." />
+          </div>
+
+          <div className="relative max-w-3xl mx-auto">
+            {/* Vertical timeline track */}
+            <div className="absolute top-0 bottom-0 left-4 md:left-1/2 w-[0.5px] bg-[rgba(255,255,255,0.07)]" />
+
+            <div className="space-y-10">
+              {TIMELINE_EVENTS.map((event, idx) => {
+                const isEven = idx % 2 === 0;
+                const isPast = event.status === "past";
+
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, x: isEven ? -15 : 15 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+                    className={`relative flex md:flex-row flex-col ${isEven ? "md:justify-start" : "md:justify-end"}`}
+                  >
+                    {/* Node Dot */}
+                    <div
+                      className="absolute left-4 md:left-1/2 -translate-x-1/2 w-2 h-2 rounded-full top-5 z-10 border-2 border-[#0A0A08]"
+                      style={{ backgroundColor: isPast ? "#555550" : "#2D7A22" }}
+                    />
+
+                    <div className={`w-full md:w-[46%] pl-10 md:pl-0 ${isEven ? "md:pr-10" : "md:pl-10"}`}>
+                      <GlowCard className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[10px] font-normal uppercase tracking-wider text-[#888880]">
+                            {event.category}
+                          </span>
+                          <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full border ${isPast ? "border-[rgba(255,255,255,0.07)] bg-white/[0.01] text-[#555550]" : "border-[#2D7A22]/30 bg-[#2D7A22]/5 text-[#3A9C2D]"}`}>
+                            {event.status}
+                          </span>
+                        </div>
+                        <h3 className="font-display font-medium text-[#F0EDE6] text-sm mb-2">{event.title}</h3>
+                        <div className="flex flex-wrap gap-3 text-[10px] text-[#555550] mb-3 font-normal">
+                          <span>{event.date}</span>
+                          <span>·</span>
+                          <span>{event.venue}</span>
+                        </div>
+                        <p className="text-[#888880] text-xs leading-relaxed font-light">{event.desc}</p>
+                      </GlowCard>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====== COMMUNITY & IMPACT ====== */}
+      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Impact</span>
+            <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
+            <NeonHeading bright="Our Vibrant Community." dim="Meet the members building portfolios, collaborative projects, and career opportunities at NACOS Bells." />
+          </div>
+
+          {/* Stats strip */}
+          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center mb-20">
+            {[
+              { value: "200+", label: "Active Members" },
+              { value: "12",   label: "Yearly Events" },
+              { value: "40+",  label: "Student Projects" },
+              { value: "9",    label: "Tech Tracks" },
+            ].map((s, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: i * 0.05 }}
+                className="p-5 border border-[rgba(255,255,255,0.07)] rounded-xl bg-[#111110]"
+              >
+                <p className="text-3xl font-display font-light text-[#F0EDE6]">{s.value}</p>
+                <p className="text-xs text-[#555550] font-normal mt-1.5 uppercase tracking-wide">{s.label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Testimonial grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t, idx) => (
+              <GlowCard
+                key={idx}
+                className="p-6 flex flex-col justify-between min-h-[200px]"
+              >
+                <div>
+                  <span className="text-[#2D7A22] text-2xl font-serif block mb-3 leading-none opacity-40">"</span>
+                  <p className="text-[#888880] text-sm leading-relaxed italic mb-6 font-light">"{t.quote}"</p>
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t border-[rgba(255,255,255,0.07)] mt-4">
+                  <div>
+                    <h4 className="text-[#F0EDE6] font-display font-medium text-sm">{t.name}</h4>
+                    <span className="text-[10px] text-[#555550] font-normal">{t.role}</span>
+                  </div>
+                  <span
+                    className="text-[10px] font-normal px-2 py-0.5 rounded-full border border-[rgba(255,255,255,0.07)] bg-white/[0.02] text-[#888880]"
+                  >
+                    {t.handle}
+                  </span>
+                </div>
+              </GlowCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* ====== NEWSLETTER / CTA ====== */}
+      <section id="newsletter" className="relative z-10 py-32 bg-section-dark border-t border-[rgba(255,255,255,0.07)] flex items-center">
+        <div className="max-w-2xl mx-auto px-5 text-center relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <span className="gold-badge mb-4 inline-block">Stay Updated</span>
-            <h2 className="font-display font-extrabold text-4xl text-white mb-4">
-              Never miss a thing
-            </h2>
-            <p className="text-gray-300 mb-8">
-              Subscribe to the NACOS Bells newsletter for event announcements, opportunities, and chapter news.
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-6 inline-block font-normal">Stay Connected</span>
+            <h2 className="text-3xl font-display font-medium text-white mb-4">Never Miss an Opportunity</h2>
+            <p className="text-[#888880] text-sm mb-10 max-w-lg mx-auto leading-relaxed font-light">
+              Get instant updates on technical bootcamps, hackathon registrations, creative portfolio reviews, and exclusive career events.
             </p>
 
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 justify-center">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto"
+            >
               <input
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="Enter your student email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 max-w-sm px-5 py-3 rounded-full bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-nacos-gold text-sm"
+                onChange={e => setEmail(e.target.value)}
+                aria-label="Email address for newsletter subscription"
+                className="flex-1 px-5 py-3 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]/40 text-sm transition-colors"
               />
               <button
                 type="submit"
-                className="btn-secondary whitespace-nowrap"
+                style={{ backgroundColor: "#2D7A22" }}
+                className="text-[#F0EDE6] hover:bg-[#3A9C2D] font-normal text-sm px-6 py-3 rounded-md transition-colors"
               >
-                Subscribe ✉️
+                Subscribe
               </button>
             </form>
 
             {message && (
               <motion.p
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`mt-4 text-sm font-medium ${
-                  message.type === "success" ? "text-nacos-gold-light" : "text-red-300"
-                }`}
+                className={`mt-4 text-sm font-normal ${message.type === "success" ? "text-[#3A9C2D]" : "text-[#FF2D6B]"}`}
               >
                 {message.text}
               </motion.p>
@@ -342,6 +525,4 @@ const Home = () => {
       </section>
     </div>
   );
-};
-
-export default Home;
+}

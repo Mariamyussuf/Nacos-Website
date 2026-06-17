@@ -1,53 +1,43 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const statusColors = {
-  upcoming: "bg-green-100 text-green-700",
-  ongoing: "bg-amber-100 text-amber-700",
-  past: "bg-gray-100 text-gray-600",
-};
-
-const categoryColors = {
-  Workshop: "bg-blue-50 text-blue-600",
-  Competition: "bg-purple-50 text-purple-600",
-  Social: "bg-pink-50 text-pink-600",
-  General: "bg-nacos-green-muted text-nacos-green",
-  Seminar: "bg-teal-50 text-teal-600",
-};
-
 const EventCard = ({ title, date, venue, description, category, status, delay = 0 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.5, delay }}
-      className="card card-hover p-6 flex flex-col gap-3"
+      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay }}
+      className="card p-6 flex flex-col gap-3 relative overflow-hidden group"
     >
       {/* Top badges */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${categoryColors[category] || categoryColors.General}`}>
+        <span className="text-[10px] font-normal uppercase tracking-wider px-2 py-0.5 rounded border border-[rgba(255,255,255,0.07)] bg-white/[0.02] text-[#888880]">
           {category}
         </span>
-        <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${statusColors[status] || statusColors.past}`}>
+        <span className="text-[10px] font-normal uppercase tracking-wider px-2 py-0.5 rounded border border-[rgba(255,255,255,0.07)] bg-white/[0.02] text-[#888880]">
           {status}
         </span>
       </div>
 
       {/* Title */}
-      <h3 className="font-display font-bold text-nacos-green-dark text-lg leading-snug">{title}</h3>
+      <h3 className="font-display font-medium text-[#F0EDE6] text-base leading-snug transition-colors mt-2 group-hover:text-white">
+        {title}
+      </h3>
 
       {/* Description */}
-      <p className="text-gray-500 text-sm leading-relaxed flex-1">{description}</p>
+      <p className="text-[#888880] text-[13px] leading-relaxed flex-1 font-light">
+        {description}
+      </p>
 
       {/* Meta */}
-      <div className="pt-3 border-t border-gray-100 space-y-1">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>📅</span>
+      <div className="pt-3 border-t border-[rgba(255,255,255,0.07)] space-y-1.5 mt-2">
+        <div className="flex items-center gap-2 text-xs text-[#888880] font-light">
+          <i className="ti ti-calendar text-xs" />
           <span>{date}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>📍</span>
+        <div className="flex items-center gap-2 text-xs text-[#888880] font-light">
+          <i className="ti ti-map-pin text-xs" />
           <span>{venue}</span>
         </div>
       </div>
