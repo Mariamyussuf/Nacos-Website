@@ -1,65 +1,82 @@
-## ICT WEB APP PROJECT
+# NACOS Bells Chapter — Official Website
 
-This is a simple web application built with React (Frontend) and Flask (Backend).
+The official website for the **NACOS Bells Chapter** at Bells University of Technology, Ota. Built to serve computing students with events, resources, executive listings, blog posts, and community updates.
 
-## Features
-	•	React-powered user interface
-	•	Flask-based backend API
-	•	RESTful communication between frontend and backend
-	•	Easy deployment
+## Author
+
+**Yussuf Mariam Agbeke** — President, NACOS Bells Chapter
 
 ## Tech Stack
-	•	Frontend: React, JavaScript, Tailwind CSS
-	•	Backend: Python, Flask
+
+- **Frontend:** React, JavaScript, Tailwind CSS, Framer Motion
+- **Backend:** Python, Flask
+- **Database:** SQLite
+- **Fonts:** Clash Display + Satoshi (via Fontshare)
+- **Deployment:** Vercel (frontend) + Flask API
+
+## Features
+
+- Home page with animated hero, tracks overview, student projects, events timeline, and community stats
+- Executives directory with initials avatars
+- Events page with upcoming/past event listings and gallery
+- Resources vault — past questions downloadable by department and level
+- Blog with admin CMS (create, edit, delete posts)
+- Contact form with newsletter subscription
+- Light / Dark mode toggle
+- Fully responsive (mobile-first)
 
 ## Getting Started
 
-## Prerequisites
+### Prerequisites
 
-## Ensure you have the following installed:
-	•	Node.js & npm
-	•	Python 3
-	•	Flask
+Ensure you have the following installed:
+- Node.js & npm
+- Python 3
+- Flask
 
-1. Clone the Repository
+### 1. Clone the Repository
 
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+```bash
+git clone https://github.com/Mariamyussuf/Nacos-Website.git
+cd Nacos-Website
+```
 
-2. Install Dependencies
+### 2. Install Dependencies
 
-For Backend (Flask)
+**Backend (Flask)**
+```bash
+pip install -r requirements.txt
+```
 
-``` pip install -r requirements.txt ```
+**Frontend (React)**
+```bash
+npm install
+```
 
-For Frontend (React)
+### 3. Run the Project
 
-``` npm install ```
+**Start the Flask Backend**
+```bash
+python app.py
+```
+Runs at `http://127.0.0.1:5000/`
 
-3. Running the Project
+**Start the React Frontend**
+```bash
+npm start
+```
+Runs at `http://localhost:3000/`
 
-Start the Flask Backend
+### Build for Production
 
-``` python app.py ```
+```bash
+npm run build
+```
 
-By default, it runs at http://127.0.0.1:5000/.
-
-Start the React Frontend
-
-``` npm start ```
-
-By default, it runs at http://localhost:3000/.
-
-Building and Deployment
-
-Build the Project
-
-``` npm run build ```
-
-This creates a production-ready build/ folder for the frontend.
+Creates a production-ready `build/` folder for the frontend.
 
 ## Notes
 
-- You can modify the HTML files in the `templates/` folder to change how the app looks.
-- Add your data files to the `data/` folder if needed.
-
+- Admin panel is accessible at `/admin` — manage blogs, events, and resources from the dashboard.
+- Newsletter subscriptions are stored in `subscribers.db`.
+- Past questions are stored via `localStorage` and managed through the admin CMS.
