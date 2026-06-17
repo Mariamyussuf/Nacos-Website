@@ -12,13 +12,9 @@ const ExecCard = ({ name, position, initials, delay = 0 }) => {
     >
       {/* Avatar initials container */}
       <div
-        style={{
-          backgroundColor: "#1A1A17",
-          border: "0.5px solid rgba(255, 255, 255, 0.07)",
-        }}
-        className="w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105"
+        className="exec-avatar w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105"
       >
-        <span className="text-[#F0EDE6] font-display font-medium text-lg">
+        <span className="text-[#F0EDE6] font-display font-medium text-lg exec-avatar-initials">
           {initials}
         </span>
       </div>

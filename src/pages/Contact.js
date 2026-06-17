@@ -260,7 +260,7 @@ const Contact = () => {
             Membership is open to all Computer Science and related discipline students.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <a href="/#newsletter" className="btn-secondary">Subscribe to Newsletter</a>
+            <a href="/#newsletter" className="btn-primary">Subscribe to Newsletter</a>
             <a
               href="https://www.nacos.org.ng"
               target="_blank"

@@ -38,7 +38,7 @@ export default function TracksStrip() {
   return (
     <section className="relative z-10 py-14 border-b border-[rgba(255,255,255,0.07)] bg-[#0A0A08]">
       <div className="max-w-7xl mx-auto px-5">
-        <div className="flex flex-col sm:flex-row gap-4 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
           {TRACKS.map((track, idx) => (
             <motion.div
               key={idx}

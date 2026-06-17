@@ -565,3 +565,53 @@ a:focus-visible {
 /* ── Glass panels ── */
 .light .glass      { background: rgba(239,237,232,0.88) !important; border-color: rgba(0,0,0,0.08) !important; }
 .light .glass-dark { background: rgba(247,246,243,0.95) !important; border-color: rgba(0,0,0,0.08) !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   EXEC CARD — base dark defaults (replaces removed inline styles)
+═══════════════════════════════════════════════════════════════ */
+.exec-avatar {
+  background-color: #1A1A17;
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
+}
+.exec-avatar-initials { color: #F0EDE6; }
+
+/* ── Exec card light mode ── */
+.light .exec-avatar {
+  background-color: #E5E3DC !important;
+  border-color: rgba(0,0,0,0.10) !important;
+}
+.light .exec-avatar-initials { color: #1C1C1A !important; }
+
+/* ── Executives page — page header badge ── */
+.light span.border.border-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\].bg-white\/\[0\.02\].rounded-full {
+  border-color: rgba(0,0,0,0.08) !important;
+  background-color: rgba(0,0,0,0.03) !important;
+  color: #555550 !important;
+}
+
+/* ── Executives page — h1 white ── */
+.light h1.text-white { color: #1C1C1A !important; }
+.light h1.font-display.font-medium.text-5xl.text-white { color: #1C1C1A !important; }
+
+/* ── Executives page — bottom CTA section ── */
+.light .bg-\[\#111110\].border-t { background-color: #EFEDE8 !important; }
+.light .section-title { color: #1C1C1A !important; }
+.light .section-subtitle { color: #555550 !important; }
+
+/* ── Admin page sidebar / workspace (dark panels) ── */
+.light .bg-\[\#111110\].rounded-xl { background-color: #EFEDE8 !important; }
+.light main.bg-\[\#111110\] { background-color: #EFEDE8 !important; }
+.light h2.text-white.font-display { color: #1C1C1A !important; }
+.light h1.font-display.font-medium.text-2xl.text-white { color: #1C1C1A !important; }
+
+/* ── Inputs / selects / textareas (Admin + general) ── */
+.light input[type="text"],
+.light select,
+.light textarea {
+  background-color: #E5E3DC !important;
+  border-color: rgba(0,0,0,0.10) !important;
+  color: #1C1C1A !important;
+}
+.light input[type="text"]::placeholder,
+.light textarea::placeholder { color: #888880 !important; }
+.light select option { background-color: #E5E3DC; color: #1C1C1A; }
