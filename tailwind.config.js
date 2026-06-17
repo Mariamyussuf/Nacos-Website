@@ -6,8 +6,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
-        display: ['Outfit', 'ui-sans-serif', 'system-ui'],
+        sans: ['Satoshi', 'ui-sans-serif', 'system-ui'],
+        display: ['Clash Display', 'ui-sans-serif', 'system-ui'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         nacos: {

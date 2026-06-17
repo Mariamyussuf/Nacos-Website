@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
+/* Fonts loaded via Fontshare CDN in index.html — Clash Display + Satoshi */
 
 @tailwind base;
 @tailwind components;
@@ -46,7 +46,7 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Satoshi', ui-sans-serif, system-ui, sans-serif;
     background-color: var(--void);
     color: var(--text);
     overflow-x: hidden;

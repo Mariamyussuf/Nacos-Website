@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { subscribe } from "../components/api";
@@ -123,9 +123,27 @@ const TESTIMONIALS = [
 
 const KEYWORDS = ["Explore", "Build", "Design", "Research", "Shoot", "Edit", "Innovate"];
 
+const EYEBROW_TEXT = "Where Technology Meets Talent";
+
 const fadeUp = {
   hidden:  { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
+};
+
+const BELLS_LETTERS = "Bells.".split("");
+
+const letterVariants = {
+  hidden: { opacity: 0, y: 30, clipPath: "inset(100% 0 0 0)" },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    clipPath: "inset(0% 0 0 0)",
+    transition: {
+      duration: 0.55,
+      ease: [0.22, 1, 0.36, 1],
+      delay: 0.35 + i * 0.07,
+    },
+  }),
 };
 
 export default function Home() {
@@ -133,6 +151,31 @@ export default function Home() {
   const [email,      setEmail]      = useState("");
   const [message,    setMessage]    = useState(null);
   const [tickerIdx,  setTickerIdx]  = useState(0);
+  const [eyebrow,    setEyebrow]    = useState("");
+  const [caretOn,    setCaretOn]    = useState(true);
+  const eyebrowDone  = useRef(false);
+
+  // Terminal typewriter for eyebrow
+  useEffect(() => {
+    let i = 0;
+    const speed = 38;
+    const timer = setInterval(() => {
+      if (i < EYEBROW_TEXT.length) {
+        setEyebrow(EYEBROW_TEXT.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(timer);
+        eyebrowDone.current = true;
+      }
+    }, speed);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Blinking caret
+  useEffect(() => {
+    const id = setInterval(() => setCaretOn(v => !v), 530);
+    return () => clearInterval(id);
+  }, []);
 
   // Rotating ticker
   useEffect(() => {
@@ -168,18 +211,62 @@ export default function Home() {
         className="relative min-h-screen flex flex-col justify-between bg-[#0A0A08] overflow-hidden"
       >
         <div className="flex-1 flex flex-col justify-center max-w-2xl mt-8">
-          {/* Eyebrow */}
+          {/* Eyebrow — terminal typewriter */}
           <div className="flex items-center gap-3 mb-6">
-            <span className="w-5 h-[0.5px] bg-[#3A9C2D]" />
             <span className="text-[11px] uppercase tracking-[0.18em] text-[#3A9C2D] font-normal">
-              NACOS — Bells University of Technology
+              {eyebrow}
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "1px",
+                  height: "0.9em",
+                  background: caretOn ? "#3A9C2D" : "transparent",
+                  marginLeft: "2px",
+                  verticalAlign: "middle",
+                  transition: "background 0.1s",
+                }}
+              />
             </span>
           </div>
 
-          {/* Headline */}
+          {/* Headline — NACOS fades in, Bells. letters stagger-reveal with glow */}
           <h1 className="font-display text-[#F0EDE6] text-[clamp(3rem,7vw,6rem)] font-light tracking-[-0.03em] leading-[1.05] mb-4">
-            NACOS <span className="font-medium">Bells.</span>
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            >
+              NACOS{" "}
+            </motion.span>
+            <span
+              className="font-medium inline-flex"
+              style={{
+                filter: "drop-shadow(0 0 18px rgba(58,156,45,0.45))",
+                animation: "bellsGlow 3.5s ease-in-out infinite",
+              }}
+            >
+              {BELLS_LETTERS.map((char, i) => (
+                <motion.span
+                  key={i}
+                  custom={i}
+                  variants={letterVariants}
+                  initial="hidden"
+                  animate="visible"
+                  style={{ display: "inline-block", whiteSpace: char === " " ? "pre" : "normal" }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </span>
           </h1>
+
+          {/* keyframes injected once */}
+          <style>{`
+            @keyframes bellsGlow {
+              0%,100% { filter: drop-shadow(0 0 10px rgba(58,156,45,0.30)); }
+              50%      { filter: drop-shadow(0 0 28px rgba(58,156,45,0.65)); }
+            }
+          `}</style>
 
           {/* Keyword Ticker */}
           <div className="h-8 flex items-center gap-2 mb-8 text-sm font-light text-[#888880]">
