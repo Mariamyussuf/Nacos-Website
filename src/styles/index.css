@@ -429,12 +429,15 @@ a:focus-visible {
    LIGHT MODE — Full Override
 /* ═══════════════════════════════════════════════════════════════
    LIGHT MODE — Complete, Pristine Overrides
-   Palette: #F7F6F3 page · #FFFFFF / #EFEDE8 panel · #E5E3DC surface
+   Palette: #F7F6F3 page · #FFFFFF / #EFEDE8 panel · #EFECE6 surface
             #141412 text · #555550 muted · #888880 dim
             #2D7A22 / #3A9C2D green accent
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── Page / root backgrounds ── */
+/* ── Page / root backgrounds & base text ── */
+html.light,
+html.light body,
+html.light #root,
 .light body,
 .light #root,
 .light .bg-\[\#0A0A08\],
@@ -480,28 +483,72 @@ a:focus-visible {
   border-color: rgba(0,0,0,0.08) !important;
 }
 
-/* ── Text colours ── */
-.light .text-\[\#F0EDE6\],
-.light [class*="text-[#F0EDE6]"],
+/* ── Universal Light Mode Typography — Never white on light bg ── */
 .light h1,
 .light h2,
 .light h3,
 .light h4,
 .light h5,
 .light h6,
-.light .section-title {
+.light .section-title,
+.light .font-display,
+.light .text-\[\#F0EDE6\],
+.light [class*="text-[#F0EDE6]"],
+.light .text-white:not(.btn-primary):not(.btn-secondary):not([class*="bg-[#2D7A22]"]):not([class*="bg-[#3A9C2D]"]):not([class*="bg-[#FF2D6B]"]),
+.light [class*="text-white"]:not(.btn-primary):not(.btn-secondary):not([class*="bg-[#2D7A22]"]):not([class*="bg-[#3A9C2D]"]):not([class*="bg-[#FF2D6B]"]) {
   color: #141412 !important;
 }
 
+/* Translucent whites in Tailwind (text-white/80, text-white/70, etc.) */
+.light [class*="text-white/90"],
+.light [class*="text-white/80"],
+.light [class*="text-white/75"],
+.light [class*="text-white/70"] {
+  color: #2D2D2A !important;
+}
+
+.light [class*="text-white/60"],
+.light [class*="text-white/50"],
+.light [class*="text-white/40"],
+.light [class*="text-white/35"],
+.light [class*="text-white/30"] {
+  color: #666660 !important;
+}
+
+/* Muted and dim typography */
 .light .text-\[\#888880\],
 .light [class*="text-[#888880]"],
-.light .section-subtitle {
+.light .section-subtitle,
+.light p.font-light {
   color: #555550 !important;
 }
 
 .light .text-\[\#555550\],
 .light [class*="text-[#555550]"] {
-  color: #888880 !important;
+  color: #787870 !important;
+}
+
+/* Hover and Group Hover in Light Mode */
+.light [class*="hover:text-white"]:hover,
+.light [class*="group-hover:text-white"]:hover,
+.light .group:hover [class*="group-hover:text-white"] {
+  color: #141412 !important;
+}
+
+.light [class*="hover:text-[#F0EDE6]"]:hover,
+.light [class*="group-hover:text-[#F0EDE6]"]:hover,
+.light .group:hover [class*="group-hover:text-[#F0EDE6]"] {
+  color: #141412 !important;
+}
+
+/* ── NeonHeading bright & dim words ── */
+.light .neon-heading .bright,
+.light .neon-heading span.bright {
+  color: #141412 !important;
+}
+.light .neon-heading .dim,
+.light .neon-heading span.dim {
+  color: #666660 !important;
 }
 
 /* ── Nav links ── */
@@ -549,6 +596,7 @@ a:focus-visible {
 
 /* ── Buttons & CTAs in Light Mode — preserve white text ── */
 .light .btn-primary,
+.light .btn-secondary,
 .light .bg-\[\#2D7A22\],
 .light [style*="background-color: #2D7A22"],
 .light [style*="background-color: rgb(45, 122, 34)"],
@@ -559,6 +607,7 @@ a:focus-visible {
   color: #FFFFFF !important;
 }
 .light .btn-primary *,
+.light .btn-secondary *,
 .light .bg-\[\#2D7A22\] * {
   color: #FFFFFF !important;
 }

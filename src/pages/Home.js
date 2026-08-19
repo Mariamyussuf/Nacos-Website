@@ -372,7 +372,7 @@ export default function Home() {
             </motion.span>
             <span
               ref={bellsRef}
-              className="font-medium inline-flex"
+              className="font-medium inline-flex text-[#2D7A22]"
               style={{
                 filter: "drop-shadow(0 0 18px rgba(58,156,45,0.45))",
                 animation: "bellsGlow 3.5s ease-in-out infinite",
