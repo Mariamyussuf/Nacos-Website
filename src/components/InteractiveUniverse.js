@@ -185,9 +185,9 @@ export default function InteractiveUniverse() {
       <Canvas
         camera={{ position: [0, 1, 8], fov: 50 }}
         dpr={[1, 1.5]}
+        style={{ background: "transparent" }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       >
-        <color attach="background" args={["#111110"]} />
         <ambientLight intensity={0.3} />
 
         {/* Star backdrop */}

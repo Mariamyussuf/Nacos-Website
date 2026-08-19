@@ -108,7 +108,6 @@ export default function HeroScene() {
         style={{ background: "transparent" }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       >
-        <color attach="background" args={["#0A0A08"]} />
         <ambientLight intensity={0.3} />
 
         {/* Starfield backdrop */}

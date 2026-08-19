@@ -427,11 +427,11 @@ a:focus-visible {
 
 /* ═══════════════════════════════════════════════════════════════
    LIGHT MODE — Full Override
-   All hardcoded dark hex values are neutralised here so no
-   component JSX needs to change.
-   Palette: #F7F6F3 page · #EFEDE8 panel · #E5E3DC surface
-            #1C1C1A text · #555550 muted · #888880 dim
-            #2D7A22 / #3A9C2D green accent (unchanged)
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE — Complete, Pristine Overrides
+   Palette: #F7F6F3 page · #FFFFFF / #EFEDE8 panel · #E5E3DC surface
+            #141412 text · #555550 muted · #888880 dim
+            #2D7A22 / #3A9C2D green accent
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Page / root backgrounds ── */
@@ -439,67 +439,105 @@ a:focus-visible {
 .light #root,
 .light .bg-\[\#0A0A08\],
 .light .bg-\[\#0A0A0A\],
-.light .bg-section-dark { background-color: #F7F6F3 !important; color: #1C1C1A !important; }
+.light .bg-\[\#080808\],
+.light [class*="bg-[#0A0A08]"],
+.light [class*="bg-[#080808]"],
+.light .bg-section-dark {
+  background-color: #F7F6F3 !important;
+  color: #141412 !important;
+}
 
 .light .bg-\[\#111110\],
 .light .bg-\[\#111111\],
-.light .bg-panel { background-color: #EFEDE8 !important; }
+.light [class*="bg-[#111110]"],
+.light .bg-panel {
+  background-color: #FFFFFF !important;
+}
 
 .light .bg-\[\#1A1A17\],
 .light .bg-\[\#1A1A1A\],
-.light .bg-surface { background-color: #E5E3DC !important; }
+.light [class*="bg-[#1A1A17]"],
+.light .bg-surface {
+  background-color: #EFECE6 !important;
+}
 
-/* ── Nav ── */
+/* ── Nav & Header ── */
 .light nav {
   background-color: rgba(247,246,243,0.92) !important;
   border-color: rgba(0,0,0,0.08) !important;
 }
-.light nav .bg-\[\#0A0A08\]\/90 { background-color: rgba(247,246,243,0.92) !important; }
+.light nav [class*="bg-[#0A0A08]"] {
+  background-color: rgba(247,246,243,0.92) !important;
+}
 .light nav .shadow-\[0_4px_30px_rgba\(0\2c 0\2c 0\2c 0\.8\)\] {
-  box-shadow: 0 4px 30px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
 }
 
-/* ── Mobile menu ── */
-.light .md\:hidden.overflow-hidden { background-color: #F7F6F3 !important; }
+/* ── Mobile menu drawer ── */
+.light [class*="bg-[#0A0A08]/95"],
+.light [class*="bg-[#111110]/95"] {
+  background-color: rgba(247,246,243,0.96) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
 
 /* ── Text colours ── */
 .light .text-\[\#F0EDE6\],
-.light .text-white { color: #1C1C1A !important; }
+.light [class*="text-[#F0EDE6]"],
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6,
+.light .section-title {
+  color: #141412 !important;
+}
 
-.light .text-\[\#888880\] { color: #555550 !important; }
-.light .text-\[\#555550\] { color: #888880 !important; }
+.light .text-\[\#888880\],
+.light [class*="text-[#888880]"],
+.light .section-subtitle {
+  color: #555550 !important;
+}
+
+.light .text-\[\#555550\],
+.light [class*="text-[#555550]"] {
+  color: #888880 !important;
+}
 
 /* ── Nav links ── */
 .light .nav-link { color: #555550 !important; }
 .light .nav-link:hover,
-.light .nav-link.active { color: #1C1C1A !important; }
+.light .nav-link.active { color: #141412 !important; }
 .light .nav-link::after { background: #2D7A22 !important; }
 
 /* ── Nav active item ── */
 .light .text-white.bg-white\/\[0\.06\] {
-  color: #1C1C1A !important;
+  color: #141412 !important;
   background-color: rgba(0,0,0,0.06) !important;
 }
-.light .text-\[\#888880\].hover\:text-white:hover { color: #1C1C1A !important; }
 .light .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
 .light .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(0,0,0,0.05) !important; }
 
 /* ── Borders ── */
+.light [class*="border-[rgba(255,255,255"],
+.light [class*="border-\[rgba(255,255,255"],
 .light .border-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\],
-.light .border-t-\[0\.5px\].border-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\] {
+.light .border-\[rgba\(255\2c 255\2c 255\2c 0\.05\)\] {
   border-color: rgba(0,0,0,0.08) !important;
 }
-.light .border-\[rgba\(255\2c 255\2c 255\2c 0\.05\)\] { border-color: rgba(0,0,0,0.05) !important; }
-.light .border-\[rgba\(255\2c 255\2c 255\2c 0\.12\)\] { border-color: rgba(0,0,0,0.12) !important; }
 
 /* ── Cards ── */
-.light .glow-card {
-  background-color: #EFEDE8 !important;
+.light .glow-card,
+.light .card {
+  background-color: #FFFFFF !important;
   border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.02);
 }
-.light .glow-card:hover {
-  background-color: #E5E3DC !important;
+.light .glow-card:hover,
+.light .card:hover {
+  background-color: #FAFAF8 !important;
   border-color: rgba(0,0,0,0.14) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 /* ── Announcement bar ── */
@@ -507,123 +545,112 @@ a:focus-visible {
   background: rgba(45,122,34,0.06) !important;
   border-color: rgba(0,0,0,0.06) !important;
 }
-.light .announcement-bar strong { color: #1C1C1A !important; }
+.light .announcement-bar strong { color: #141412 !important; }
 
-/* ── GitHub badge + Portal button ── */
-.light a.border.border-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\].rounded-full {
-  border-color: rgba(0,0,0,0.10) !important;
-  background-color: rgba(0,0,0,0.02) !important;
+/* ── Buttons & CTAs in Light Mode — preserve white text ── */
+.light .btn-primary,
+.light .bg-\[\#2D7A22\],
+.light [style*="background-color: #2D7A22"],
+.light [style*="background-color: rgb(45, 122, 34)"],
+.light [style*="background: #2D7A22"],
+.light [style*="background: rgb(45, 122, 34)"],
+.light a.bg-\[\#2D7A22\],
+.light button.bg-\[\#2D7A22\] {
+  color: #FFFFFF !important;
 }
-.light a.border.border-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\].rounded-full:hover {
-  background-color: rgba(0,0,0,0.05) !important;
+.light .btn-primary *,
+.light .bg-\[\#2D7A22\] * {
+  color: #FFFFFF !important;
 }
 
-/* ── Hero section ── */
-.light section.bg-\[\#0A0A08\],
-.light .min-h-screen.bg-\[\#0A0A08\] { background-color: #F7F6F3 !important; }
+/* ── Ghost / Outline buttons ── */
+.light .btn-outline {
+  color: #555550 !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  background: rgba(0,0,0,0.02) !important;
+}
+.light .btn-outline:hover {
+  color: #141412 !important;
+  border-color: rgba(0,0,0,0.2) !important;
+  background: rgba(0,0,0,0.05) !important;
+}
 
-/* ── Stats / dividers ── */
+/* ── Badges ── */
+.light .nacos-badge,
+.light .gold-badge,
+.light .gray-badge {
+  background-color: rgba(0,0,0,0.03) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: #555550 !important;
+}
+
+/* ── Track cards ── */
+.light .track-card {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.light .track-card:hover {
+  background-color: #FAFAF8 !important;
+  border-color: rgba(0,0,0,0.14) !important;
+}
+
+/* ── Exec cards ── */
+.light .exec-avatar {
+  background-color: #EFECE6 !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+.light .exec-avatar-initials {
+  color: #2D7A22 !important;
+}
+
+/* ── Hero section in light mode ── */
+.light section[class*="bg-[#0A0A08]"],
+.light .min-h-screen[class*="bg-[#0A0A08]"] {
+  background-color: #F7F6F3 !important;
+}
+
+/* ── Dot matrix ── */
+.light .dot-matrix-icon span {
+  background-color: rgba(0,0,0,0.15) !important;
+}
+
+/* ── Timeline track & node dots ── */
+.light .gsap-timeline-dot {
+  border-color: #F7F6F3 !important;
+}
+
+/* ── Stats / Dividers ── */
 .light .border-t-\[0\.5px\] { border-color: rgba(0,0,0,0.08) !important; }
 .light .bg-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\] { background-color: rgba(0,0,0,0.06) !important; }
 
-/* ── white/opacity backgrounds ── */
-.light .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.03) !important; }
-.light .bg-white\/\[0\.01\] { background-color: rgba(0,0,0,0.02) !important; }
-.light .bg-white\/5       { background-color: rgba(0,0,0,0.04) !important; }
-
-/* ── text/opacity ── */
-.light .text-white\/35 { color: rgba(28,28,26,0.40) !important; }
-.light .text-white\/50 { color: rgba(28,28,26,0.55) !important; }
-.light .text-white\/40 { color: rgba(28,28,26,0.40) !important; }
-
-/* ── NeonHeading bright/dim spans ── */
-.light .neon-heading .bright,
-.light h2.neon-heading span:first-child { color: #1C1C1A !important; }
-.light .neon-heading .dim,
-.light h2.neon-heading span:last-child  { color: rgba(28,28,26,0.40) !important; }
-
 /* ── Footer ── */
 .light footer {
-  background-color: #EFEDE8 !important;
+  background-color: #EFECE6 !important;
   border-color: rgba(0,0,0,0.08) !important;
 }
-.light footer .text-\[\#555550\] { color: #888880 !important; }
-.light footer .hover\:text-\[\#888880\]:hover { color: #555550 !important; }
+.light footer [class*="text-[#555550]"] { color: #555550 !important; }
+.light footer a:hover { color: #141412 !important; }
+
+/* ── Form inputs ── */
+.light input,
+.light select,
+.light textarea {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #141412 !important;
+}
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #888880 !important;
+}
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: #2D7A22 !important;
+}
 
 /* ── Scrollbar ── */
 .light ::-webkit-scrollbar-track { background: #F7F6F3; }
 .light ::-webkit-scrollbar-thumb { background: #C8C5BC; }
 .light ::-webkit-scrollbar-thumb:hover { background: rgba(45,122,34,0.35); }
-
-/* ── Newsletter input ── */
-.light input[type="email"] {
-  background-color: #EFEDE8 !important;
-  border-color: rgba(0,0,0,0.10) !important;
-  color: #1C1C1A !important;
-}
-.light input[type="email"]::placeholder { color: #888880 !important; }
-.light input[type="email"]:focus { border-color: rgba(45,122,34,0.40) !important; }
-
-/* ── Track cards ── */
-.light .track-card {
-  background-color: #EFEDE8 !important;
-  border-color: rgba(0,0,0,0.08) !important;
-}
-.light .track-card:hover {
-  background-color: #E5E3DC !important;
-  border-color: rgba(0,0,0,0.14) !important;
-}
-
-/* ── Glass panels ── */
-.light .glass      { background: rgba(239,237,232,0.88) !important; border-color: rgba(0,0,0,0.08) !important; }
-.light .glass-dark { background: rgba(247,246,243,0.95) !important; border-color: rgba(0,0,0,0.08) !important; }
-
-/* ═══════════════════════════════════════════════════════════════
-   EXEC CARD — base dark defaults (replaces removed inline styles)
-═══════════════════════════════════════════════════════════════ */
-.exec-avatar {
-  background-color: #1A1A17;
-  border: 0.5px solid rgba(255, 255, 255, 0.07);
-}
-.exec-avatar-initials { color: #F0EDE6; }
-
-/* ── Exec card light mode ── */
-.light .exec-avatar {
-  background-color: #E5E3DC !important;
-  border-color: rgba(0,0,0,0.10) !important;
-}
-.light .exec-avatar-initials { color: #1C1C1A !important; }
-
-/* ── Executives page — page header badge ── */
-.light span.border.border-\[rgba\(255\2c 255\2c 255\2c 0\.07\)\].bg-white\/\[0\.02\].rounded-full {
-  border-color: rgba(0,0,0,0.08) !important;
-  background-color: rgba(0,0,0,0.03) !important;
-  color: #555550 !important;
-}
-
-/* ── Executives page — h1 white ── */
-.light h1.text-white { color: #1C1C1A !important; }
-.light h1.font-display.font-medium.text-5xl.text-white { color: #1C1C1A !important; }
-
-/* ── Executives page — bottom CTA section ── */
-.light .bg-\[\#111110\].border-t { background-color: #EFEDE8 !important; }
-.light .section-title { color: #1C1C1A !important; }
-.light .section-subtitle { color: #555550 !important; }
-
-/* ── Admin page sidebar / workspace (dark panels) ── */
-.light .bg-\[\#111110\].rounded-xl { background-color: #EFEDE8 !important; }
-.light main.bg-\[\#111110\] { background-color: #EFEDE8 !important; }
-.light h2.text-white.font-display { color: #1C1C1A !important; }
-.light h1.font-display.font-medium.text-2xl.text-white { color: #1C1C1A !important; }
-
-/* ── Inputs / selects / textareas (Admin + general) ── */
-.light input[type="text"],
-.light select,
-.light textarea {
-  background-color: #E5E3DC !important;
-  border-color: rgba(0,0,0,0.10) !important;
-  color: #1C1C1A !important;
-}
-.light input[type="text"]::placeholder,
-.light textarea::placeholder { color: #888880 !important; }
-.light select option { background-color: #E5E3DC; color: #1C1C1A; }
