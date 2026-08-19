@@ -37,8 +37,8 @@ const TRACKS = [
 export default function TracksStrip() {
   return (
     <section className="relative z-10 py-14 border-b border-[rgba(255,255,255,0.07)] bg-[#0A0A08]">
-      <div className="max-w-7xl mx-auto px-5">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
           {TRACKS.map((track, idx) => (
             <motion.div
               key={idx}
@@ -46,7 +46,7 @@ export default function TracksStrip() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: idx * 0.05 }}
-              className="track-card flex-1 min-w-[200px]"
+              className="track-card flex flex-col justify-between"
             >
               <div className="flex items-center gap-2.5 mb-3">
                 <i className={`ti ${track.icon} text-lg text-[#555550]`} />

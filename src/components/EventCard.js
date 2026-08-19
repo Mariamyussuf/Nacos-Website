@@ -8,7 +8,7 @@ const EventCard = ({ title, date, venue, description, category, status, delay = 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay }}
-      className="card p-6 flex flex-col gap-3 relative overflow-hidden group"
+      className="card p-5 sm:p-6 flex flex-col gap-3 relative overflow-hidden group"
     >
       {/* Top badges */}
       <div className="flex items-center justify-between flex-wrap gap-2">

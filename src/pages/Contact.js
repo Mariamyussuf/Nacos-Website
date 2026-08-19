@@ -43,20 +43,20 @@ const Contact = () => {
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
       {/* ====== PAGE HEADER ====== */}
-      <section className="relative py-24 z-10 overflow-hidden">
+      <section className="relative py-16 sm:py-24 z-10 overflow-hidden">
         <motion.div
-          className="relative z-10 text-center max-w-4xl mx-auto px-6"
+          className="relative z-10 text-center max-w-4xl mx-auto px-5 sm:px-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-6">
+          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-4 sm:mb-6">
             Reach Out
           </span>
-          <h1 className="font-display font-medium text-5xl text-white mb-6 leading-tight">
+          <h1 className="font-display font-medium text-3xl sm:text-4xl md:text-5xl text-white mb-4 sm:mb-6 leading-tight">
             Get In <span className="font-medium text-[#2D7A22]">Touch</span>
           </h1>
-          <p className="text-[#888880] text-lg leading-relaxed max-w-2xl mx-auto font-light">
+          <p className="text-[#888880] text-base sm:text-lg leading-relaxed max-w-2xl mx-auto font-light">
             Have questions, suggestions, or want to join NACOS Bells Chapter?
             We'd love to hear from you — don't hesitate to reach out!
           </p>
@@ -64,11 +64,11 @@ const Contact = () => {
       </section>
 
       {/* ====== MAIN CONTENT ====== */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-8">
-        <div className="grid md:grid-cols-2 gap-12 items-start">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
           {/* Contact Form */}
           <motion.div
-            className="glow-card p-8"
+            className="glow-card p-5 sm:p-8"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}

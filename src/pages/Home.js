@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { subscribe } from "../components/api";
@@ -9,6 +11,9 @@ import TracksDeepDive from "../components/TracksDeepDive";
 import InteractiveUniverse from "../components/InteractiveUniverse";
 import GlowCard from "../components/GlowCard";
 import NeonHeading from "../components/NeonHeading";
+import HeroScene from "../components/HeroScene";
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -132,20 +137,6 @@ const fadeUp = {
 
 const BELLS_LETTERS = "Bells.".split("");
 
-const letterVariants = {
-  hidden: { opacity: 0, y: 30, clipPath: "inset(100% 0 0 0)" },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    clipPath: "inset(0% 0 0 0)",
-    transition: {
-      duration: 0.55,
-      ease: [0.22, 1, 0.36, 1],
-      delay: 0.35 + i * 0.07,
-    },
-  }),
-};
-
 export default function Home() {
   const showToast = useToast();
   const [email,      setEmail]      = useState("");
@@ -154,6 +145,146 @@ export default function Home() {
   const [eyebrow,    setEyebrow]    = useState("");
   const [caretOn,    setCaretOn]    = useState(true);
   const eyebrowDone  = useRef(false);
+
+  // ── GSAP refs ──
+  const heroRef        = useRef(null);
+  const bellsRef       = useRef(null);
+  const scrollHintRef  = useRef(null);
+  const timelineRef    = useRef(null);
+  const progressRef    = useRef(null);
+  const statsRef       = useRef(null);
+
+  // ── GSAP: Hero "Bells." character split animation ──
+  useEffect(() => {
+    if (!bellsRef.current) return;
+    const chars = bellsRef.current.querySelectorAll(".gsap-char");
+
+    const ctx = gsap.context(() => {
+      gsap.set(chars, {
+        opacity: 0,
+        y: 40,
+        rotateX: -90,
+        filter: "blur(8px)",
+      });
+
+      gsap.to(chars, {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        filter: "blur(0px)",
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.08,
+        delay: 0.4,
+      });
+    }, bellsRef.current);
+
+    return () => ctx.revert();
+  }, []);
+
+  // ── GSAP: Hero scroll parallax — headline drifts up as user scrolls ──
+  useEffect(() => {
+    if (!heroRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.to(".gsap-hero-content", {
+        y: -60,
+        opacity: 0.3,
+        ease: "none",
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.6,
+        },
+      });
+    }, heroRef.current);
+
+    return () => ctx.revert();
+  }, []);
+
+  // ── GSAP: Scroll hint pulsing animation ──
+  useEffect(() => {
+    if (!scrollHintRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.to(scrollHintRef.current, {
+        opacity: 0.3,
+        duration: 1.5,
+        ease: "power1.inOut",
+        repeat: -1,
+        yoyo: true,
+      });
+    }, scrollHintRef.current);
+    return () => ctx.revert();
+  }, []);
+
+  // ── GSAP: Timeline scroll-scrubbed progress line ──
+  useEffect(() => {
+    if (!timelineRef.current || !progressRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(progressRef.current,
+        { scaleY: 0 },
+        {
+          scaleY: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: timelineRef.current,
+            start: "top 60%",
+            end: "bottom 60%",
+            scrub: 0.3,
+          },
+        }
+      );
+
+      // Pulse timeline dots when they enter viewport
+      const dots = timelineRef.current.querySelectorAll(".gsap-timeline-dot");
+      dots.forEach((dot) => {
+        gsap.from(dot, {
+          scale: 0,
+          duration: 0.5,
+          ease: "back.out(2)",
+          scrollTrigger: {
+            trigger: dot,
+            start: "top 75%",
+            once: true,
+          },
+        });
+      });
+    }, timelineRef.current);
+
+    return () => ctx.revert();
+  }, []);
+
+  // ── GSAP: Stats counter-up animation ──
+  useEffect(() => {
+    if (!statsRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const counters = statsRef.current.querySelectorAll(".gsap-counter");
+      counters.forEach((el) => {
+        const target = parseInt(el.dataset.target, 10);
+        if (isNaN(target)) return;
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: target,
+          duration: 2,
+          ease: "power2.out",
+          snap: { val: 1 },
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            once: true,
+          },
+          onUpdate: () => {
+            el.textContent = obj.val + (el.dataset.suffix || "");
+          },
+        });
+      });
+    }, statsRef.current);
+
+    return () => ctx.revert();
+  }, []);
 
   // Terminal typewriter for eyebrow
   useEffect(() => {
@@ -207,13 +338,14 @@ export default function Home() {
         initial="hidden" animate="visible"
         variants={fadeUp}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-        style={{ padding: "120px 48px 80px" }}
-        className="relative min-h-screen flex flex-col justify-between bg-[#0A0A08] overflow-hidden"
+        className="relative min-h-screen flex flex-col justify-between bg-[#0A0A08] overflow-hidden pt-28 pb-12 sm:pb-16 px-5 sm:px-8 md:px-12 lg:pt-36 lg:pb-20"
+        ref={heroRef}
       >
-        <div className="flex-1 flex flex-col justify-center max-w-2xl mt-8">
+        <HeroScene />
+        <div className="gsap-hero-content flex-1 flex flex-col justify-center max-w-2xl mt-4 sm:mt-8 relative z-10">
           {/* Eyebrow — terminal typewriter */}
-          <div className="flex items-center gap-3 mb-6">
-            <span className="text-[11px] uppercase tracking-[0.18em] text-[#3A9C2D] font-normal">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-[#3A9C2D] font-normal">
               {eyebrow}
               <span
                 style={{
@@ -229,8 +361,8 @@ export default function Home() {
             </span>
           </div>
 
-          {/* Headline — NACOS fades in, Bells. letters stagger-reveal with glow */}
-          <h1 className="font-display text-[#F0EDE6] text-[clamp(3rem,7vw,6rem)] font-light tracking-[-0.03em] leading-[1.05] mb-4">
+          {/* Headline — NACOS fades in, Bells. letters stagger-reveal with GSAP */}
+          <h1 className="font-display text-[#F0EDE6] text-[clamp(2.5rem,6.5vw,5.5rem)] font-light tracking-[-0.03em] leading-[1.05] mb-4">
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -239,23 +371,22 @@ export default function Home() {
               NACOS{" "}
             </motion.span>
             <span
+              ref={bellsRef}
               className="font-medium inline-flex"
               style={{
                 filter: "drop-shadow(0 0 18px rgba(58,156,45,0.45))",
                 animation: "bellsGlow 3.5s ease-in-out infinite",
+                perspective: "600px",
               }}
             >
               {BELLS_LETTERS.map((char, i) => (
-                <motion.span
+                <span
                   key={i}
-                  custom={i}
-                  variants={letterVariants}
-                  initial="hidden"
-                  animate="visible"
+                  className="gsap-char"
                   style={{ display: "inline-block", whiteSpace: char === " " ? "pre" : "normal" }}
                 >
                   {char}
-                </motion.span>
+                </span>
               ))}
             </span>
           </h1>
@@ -269,7 +400,7 @@ export default function Home() {
           `}</style>
 
           {/* Keyword Ticker */}
-          <div className="h-8 flex items-center gap-2 mb-8 text-sm font-light text-[#888880]">
+          <div className="h-8 flex items-center gap-2 mb-6 sm:mb-8 text-xs sm:text-sm font-light text-[#888880]">
             <span>We exist to</span>
             <AnimatePresence mode="wait">
               <motion.span
@@ -278,7 +409,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
-                className="text-[#F0EDE6] font-display font-medium text-base"
+                className="text-[#F0EDE6] font-display font-medium text-sm sm:text-base"
               >
                 {KEYWORDS[tickerIdx]}.
               </motion.span>
@@ -286,12 +417,12 @@ export default function Home() {
           </div>
 
           {/* Subtext */}
-          <p className="text-[16px] font-light text-[#888880] max-w-[440px] leading-[1.7] mb-8">
+          <p className="text-[14px] sm:text-[16px] font-light text-[#888880] max-w-[440px] leading-[1.7] mb-6 sm:mb-8">
             Developing future-focused software engineering, design, and cybersecurity leaders at Bells University.
           </p>
 
           {/* CTAs */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <Link
               to="/contact"
               style={{ background: "#2D7A22" }}
@@ -301,7 +432,7 @@ export default function Home() {
             </Link>
             <a
               href="#tracks-deep-dive"
-              className="text-[#888880] hover:text-[#F0EDE6] transition-colors duration-200 text-[13px] font-normal flex items-center gap-1.5"
+              className="text-[#888880] hover:text-[#F0EDE6] transition-colors duration-200 text-[13px] font-normal flex items-center gap-1.5 py-2"
             >
               Explore tracks <span>→</span>
             </a>
@@ -309,9 +440,9 @@ export default function Home() {
         </div>
 
         {/* Bottom Section */}
-        <div className="flex items-end justify-between mt-auto pt-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mt-auto pt-8 sm:pt-10 gap-6 relative z-10">
           {/* Bottom-left: Scroll hint */}
-          <div className="flex items-center gap-3">
+          <div ref={scrollHintRef} className="hidden sm:flex items-center gap-3">
             <span className="w-10 h-[0.5px] bg-[#555550]" />
             <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">
               Scroll to explore
@@ -319,18 +450,18 @@ export default function Home() {
           </div>
 
           {/* Bottom-right: Stats stack */}
-          <div className="flex flex-col items-end text-right space-y-4">
-            <div className="w-[120px] border-t-[0.5px] border-[rgba(255,255,255,0.07)] pt-3">
-              <p className="font-display font-light text-[28px] text-[#F0EDE6] leading-none mb-1">500+</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Members</p>
+          <div className="flex flex-row sm:flex-col items-start sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-4 sm:gap-0 sm:space-y-4 pt-4 sm:pt-0 border-t sm:border-t-0 border-[rgba(255,255,255,0.07)]">
+            <div className="sm:w-[120px] sm:border-t-[0.5px] sm:border-[rgba(255,255,255,0.07)] sm:pt-3">
+              <p className="font-display font-light text-xl sm:text-[28px] text-[#F0EDE6] leading-none mb-1">500+</p>
+              <p className="text-[9px] sm:text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Members</p>
             </div>
-            <div className="w-[120px] border-t-[0.5px] border-[rgba(255,255,255,0.07)] pt-3">
-              <p className="font-display font-light text-[28px] text-[#F0EDE6] leading-none mb-1">6</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Tracks</p>
+            <div className="sm:w-[120px] sm:border-t-[0.5px] sm:border-[rgba(255,255,255,0.07)] sm:pt-3">
+              <p className="font-display font-light text-xl sm:text-[28px] text-[#F0EDE6] leading-none mb-1">6</p>
+              <p className="text-[9px] sm:text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Tracks</p>
             </div>
-            <div className="w-[120px] border-t-[0.5px] border-[rgba(255,255,255,0.07)] pt-3">
-              <p className="font-display font-light text-[28px] text-[#F0EDE6] leading-none mb-1">2026/27</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Session</p>
+            <div className="sm:w-[120px] sm:border-t-[0.5px] sm:border-[rgba(255,255,255,0.07)] sm:pt-3">
+              <p className="font-display font-light text-xl sm:text-[28px] text-[#F0EDE6] leading-none mb-1">2026/27</p>
+              <p className="text-[9px] sm:text-[11px] uppercase tracking-[0.18em] text-[#555550] font-normal">Session</p>
             </div>
           </div>
         </div>
@@ -348,9 +479,9 @@ export default function Home() {
       </div>
 
       {/* ====== INTERACTIVE UNIVERSE ====== */}
-      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="text-center mb-16">
+      <section className="relative z-10 py-16 sm:py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5">
+          <div className="text-center mb-12 sm:mb-16">
             <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">The Map</span>
             <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
             <NeonHeading bright="Interactive Universe." dim="Technology is a living web of collaborative creativity. Select a node to explore connections." />
@@ -360,15 +491,15 @@ export default function Home() {
       </section>
 
       {/* ====== STUDENT PROJECTS ====== */}
-      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="text-center mb-16">
+      <section className="relative z-10 py-16 sm:py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5">
+          <div className="text-center mb-12 sm:mb-16">
             <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Student Builds</span>
             <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
             <NeonHeading bright="What Students Are Creating." dim="Real-world platforms, VR environments, and production tools built by Bells computing students." />
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {STUDENT_PROJECTS.map((project, idx) => (
               <GlowCard key={idx} className="p-6 flex flex-col justify-between min-h-[340px]">
                 <div>
@@ -414,7 +545,7 @@ export default function Home() {
             <NeonHeading bright="Innovation Gallery." dim="Student-led tech startups, open-source initiatives, design systems, and published research papers." />
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {GALLERY_ITEMS.map((item, idx) => (
               <GlowCard key={idx} className="p-5 flex flex-col justify-between min-h-[220px]">
                 <div>
@@ -442,19 +573,25 @@ export default function Home() {
       </section>
 
       {/* ====== EVENTS TIMELINE ====== */}
-      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="text-center mb-16">
+      <section className="relative z-10 py-16 sm:py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5">
+          <div className="text-center mb-12 sm:mb-16">
             <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Calendar</span>
             <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
             <NeonHeading bright="Events in Motion." dim="Stay track-aligned with hackathons, professional bootcamps, pitch nights, and masterclasses." />
           </div>
 
-          <div className="relative max-w-3xl mx-auto">
-            {/* Vertical timeline track */}
-            <div className="absolute top-0 bottom-0 left-4 md:left-1/2 w-[0.5px] bg-[rgba(255,255,255,0.07)]" />
+          <div ref={timelineRef} className="relative max-w-3xl mx-auto">
+            {/* Vertical timeline track (background) */}
+            <div className="absolute top-0 bottom-0 left-3 sm:left-4 md:left-1/2 w-[0.5px] bg-[rgba(255,255,255,0.07)]" />
+            {/* GSAP scroll-scrubbed progress fill */}
+            <div
+              ref={progressRef}
+              className="absolute top-0 bottom-0 left-3 sm:left-4 md:left-1/2 w-[1.5px] -translate-x-[0.25px] bg-[#2D7A22] origin-top"
+              style={{ scaleY: 0 }}
+            />
 
-            <div className="space-y-10">
+            <div className="space-y-8 sm:space-y-10">
               {TIMELINE_EVENTS.map((event, idx) => {
                 const isEven = idx % 2 === 0;
                 const isPast = event.status === "past";
@@ -468,13 +605,13 @@ export default function Home() {
                     transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
                     className={`relative flex md:flex-row flex-col ${isEven ? "md:justify-start" : "md:justify-end"}`}
                   >
-                    {/* Node Dot */}
+                    {/* Node Dot — GSAP pulsed on scroll */}
                     <div
-                      className="absolute left-4 md:left-1/2 -translate-x-1/2 w-2 h-2 rounded-full top-5 z-10 border-2 border-[#0A0A08]"
+                      className="gsap-timeline-dot absolute left-3 sm:left-4 md:left-1/2 -translate-x-1/2 w-2 h-2 rounded-full top-5 z-10 border-2 border-[#0A0A08]"
                       style={{ backgroundColor: isPast ? "#555550" : "#2D7A22" }}
                     />
 
-                    <div className={`w-full md:w-[46%] pl-10 md:pl-0 ${isEven ? "md:pr-10" : "md:pl-10"}`}>
+                    <div className={`w-full md:w-[46%] pl-8 sm:pl-10 md:pl-0 ${isEven ? "md:pr-10" : "md:pl-10"}`}>
                       <GlowCard className="p-5">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-[10px] font-normal uppercase tracking-wider text-[#888880]">
@@ -485,7 +622,7 @@ export default function Home() {
                           </span>
                         </div>
                         <h3 className="font-display font-medium text-[#F0EDE6] text-sm mb-2">{event.title}</h3>
-                        <div className="flex flex-wrap gap-3 text-[10px] text-[#555550] mb-3 font-normal">
+                        <div className="flex flex-wrap gap-2 sm:gap-3 text-[10px] text-[#555550] mb-3 font-normal">
                           <span>{event.date}</span>
                           <span>·</span>
                           <span>{event.venue}</span>
@@ -502,38 +639,40 @@ export default function Home() {
       </section>
 
       {/* ====== COMMUNITY & IMPACT ====== */}
-      <section className="relative z-10 py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="text-center mb-16">
+      <section className="relative z-10 py-16 sm:py-24 bg-section-dark border-t border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5">
+          <div className="text-center mb-12 sm:mb-16">
             <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-3 inline-block">Impact</span>
             <div className="w-[60px] h-[0.5px] bg-[rgba(255,255,255,0.07)] mx-auto mb-6" />
             <NeonHeading bright="Our Vibrant Community." dim="Meet the members building portfolios, collaborative projects, and career opportunities at NACOS Bells." />
           </div>
 
           {/* Stats strip */}
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center mb-20">
+          <div ref={statsRef} className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center mb-14 sm:mb-20">
             {[
-              { value: "200+", label: "Active Members" },
-              { value: "12",   label: "Yearly Events" },
-              { value: "40+",  label: "Student Projects" },
-              { value: "9",    label: "Tech Tracks" },
+              { target: 200, suffix: "+", label: "Active Members" },
+              { target: 12,  suffix: "",  label: "Yearly Events" },
+              { target: 40,  suffix: "+", label: "Student Projects" },
+              { target: 9,   suffix: "",  label: "Tech Tracks" },
             ].map((s, i) => (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: i * 0.05 }}
-                className="p-5 border border-[rgba(255,255,255,0.07)] rounded-xl bg-[#111110]"
+                className="p-4 sm:p-5 border border-[rgba(255,255,255,0.07)] rounded-xl bg-[#111110]"
               >
-                <p className="text-3xl font-display font-light text-[#F0EDE6]">{s.value}</p>
-                <p className="text-xs text-[#555550] font-normal mt-1.5 uppercase tracking-wide">{s.label}</p>
-              </motion.div>
+                <p
+                  className="gsap-counter text-2xl sm:text-3xl font-display font-light text-[#F0EDE6]"
+                  data-target={s.target}
+                  data-suffix={s.suffix}
+                >
+                  0{s.suffix}
+                </p>
+                <p className="text-[10px] sm:text-xs text-[#555550] font-normal mt-1.5 uppercase tracking-wide">{s.label}</p>
+              </div>
             ))}
           </div>
 
           {/* Testimonial grid */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {TESTIMONIALS.map((t, idx) => (
               <GlowCard
                 key={idx}
@@ -560,10 +699,8 @@ export default function Home() {
         </div>
       </section>
 
-
-
       {/* ====== NEWSLETTER / CTA ====== */}
-      <section id="newsletter" className="relative z-10 py-32 bg-section-dark border-t border-[rgba(255,255,255,0.07)] flex items-center">
+      <section id="newsletter" className="relative z-10 py-20 sm:py-32 bg-section-dark border-t border-[rgba(255,255,255,0.07)] flex items-center">
         <div className="max-w-2xl mx-auto px-5 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -571,9 +708,9 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-6 inline-block font-normal">Stay Connected</span>
-            <h2 className="text-3xl font-display font-medium text-white mb-4">Never Miss an Opportunity</h2>
-            <p className="text-[#888880] text-sm mb-10 max-w-lg mx-auto leading-relaxed font-light">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#555550] mb-4 sm:mb-6 inline-block font-normal">Stay Connected</span>
+            <h2 className="text-2xl sm:text-3xl font-display font-medium text-white mb-4">Never Miss an Opportunity</h2>
+            <p className="text-[#888880] text-sm mb-8 sm:mb-10 max-w-lg mx-auto leading-relaxed font-light">
               Get instant updates on technical bootcamps, hackathon registrations, creative portfolio reviews, and exclusive career events.
             </p>
 
@@ -587,7 +724,7 @@ export default function Home() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 aria-label="Email address for newsletter subscription"
-                className="flex-1 px-5 py-3 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]/40 text-sm transition-colors"
+                className="flex-1 px-4 sm:px-5 py-3 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]/40 text-sm transition-colors"
               />
               <button
                 type="submit"

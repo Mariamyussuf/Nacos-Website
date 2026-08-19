@@ -24,28 +24,28 @@ const Executives = () => {
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
       {/* ====== PAGE HEADER ====== */}
-      <section className="relative py-24 z-10 overflow-hidden">
+      <section className="relative py-16 sm:py-24 z-10 overflow-hidden">
         <motion.div
-          className="relative z-10 text-center max-w-4xl mx-auto px-6"
+          className="relative z-10 text-center max-w-4xl mx-auto px-5 sm:px-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-6">
+          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-4 sm:mb-6">
             Current Administration
           </span>
-          <h1 className="font-display font-medium text-5xl text-white mb-6 leading-tight">
+          <h1 className="font-display font-medium text-3xl sm:text-4xl md:text-5xl text-white mb-4 sm:mb-6 leading-tight">
             Meet Our <span className="font-medium text-[#2D7A22]">Executives</span>
           </h1>
-          <p className="text-[#888880] text-lg leading-relaxed max-w-2xl mx-auto font-light">
+          <p className="text-[#888880] text-base sm:text-lg leading-relaxed max-w-2xl mx-auto font-light">
             The dedicated leaders steering NACOS Bells Chapter towards excellence, innovation, and unity.
           </p>
         </motion.div>
       </section>
 
       {/* ====== UNIFIED EXECUTIVES GRID ====== */}
-      <section className="relative z-10 py-12 max-w-7xl mx-auto px-6">
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      <section className="relative z-10 py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
           {executives.map((exec, i) => (
             <ExecCard key={exec.name} {...exec} delay={i * 0.03} />
           ))}

@@ -1,19 +1,22 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useState, useMemo, useCallback } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Float, Html, Stars } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const GREEN = "#2D7A22";
+const GREEN_BRIGHT = "#3A9C2D";
 
 const WORLDS = [
-  { id: "ai",       name: "AI & Intelligence",     tablerIcon: "ti-brain",       desc: "Generative AI, Machine Learning, Deep Learning, and Python models. We build intelligent agents and explore cognitive systems.", x: 15, y: 25 },
-  { id: "software", name: "Software Engineering",  tablerIcon: "ti-code",        desc: "Write clean code, architect scalable systems, contribute to open source, and ship full-stack web, mobile, and desktop applications.", x: 45, y: 15 },
-  { id: "design",   name: "UI/UX & Design",        tablerIcon: "ti-palette",     desc: "Craft beautiful interfaces in Figma, build design systems, master colour theory, and orchestrate smooth user experiences.", x: 75, y: 20 },
-  { id: "data",     name: "Data & Analytics",      tablerIcon: "ti-chart-bar",   desc: "Extract meaning from complex datasets. Master SQL, pandas, ML diagnostics, data stories, and predictive pipelines.", x: 10, y: 65 },
-  { id: "video",    name: "Video & Motion",        tablerIcon: "ti-video",       desc: "For videographers and editors. Record visual sequences, direct events, master cutting in Premiere/DaVinci, and design motion graphics.", x: 32, y: 78 },
-  { id: "photo",    name: "Photography & Media",   tablerIcon: "ti-camera",      desc: "For tech photographers and digital publishers. Manage photo shoots, cover campus events, edit assets, and curate media platforms.", x: 58, y: 76 },
-  { id: "startups", name: "Startups & Product",    tablerIcon: "ti-rocket",      desc: "Build MVP products, pitch ideas, brainstorm sustainable business models, and learn what it takes to launch a tech startup.", x: 82, y: 65 },
-  { id: "cyber",    name: "Cybersecurity",         tablerIcon: "ti-shield-lock", desc: "Secure networks, audit applications for vulnerabilities, practice ethical hacking, compete in CTFs, and defend systems.", x: 80, y: 42 },
-  { id: "writing",  name: "Writing & Content",     tablerIcon: "ti-pencil",      desc: "Demystify complex tech. Publish developer docs, technical blogs, run tutorials, and orchestrate podcast scripts and media copy.", x: 48, y: 48 },
+  { id: "ai",       name: "AI & Intelligence",     tablerIcon: "ti-brain",       desc: "Generative AI, Machine Learning, Deep Learning, and Python models. We build intelligent agents and explore cognitive systems.", pos: [-3.5, 1.8, 0] },
+  { id: "software", name: "Software Engineering",  tablerIcon: "ti-code",        desc: "Write clean code, architect scalable systems, contribute to open source, and ship full-stack web, mobile, and desktop applications.", pos: [-0.5, 2.5, -1] },
+  { id: "design",   name: "UI/UX & Design",        tablerIcon: "ti-palette",     desc: "Craft beautiful interfaces in Figma, build design systems, master colour theory, and orchestrate smooth user experiences.", pos: [3, 1.6, 0.5] },
+  { id: "data",     name: "Data & Analytics",      tablerIcon: "ti-chart-bar",   desc: "Extract meaning from complex datasets. Master SQL, pandas, ML diagnostics, data stories, and predictive pipelines.", pos: [-4, -1, 1] },
+  { id: "video",    name: "Video & Motion",        tablerIcon: "ti-video",       desc: "For videographers and editors. Record visual sequences, direct events, master cutting in Premiere/DaVinci, and design motion graphics.", pos: [-1.5, -2, 0.5] },
+  { id: "photo",    name: "Photography & Media",   tablerIcon: "ti-camera",      desc: "For tech photographers and digital publishers. Manage photo shoots, cover campus events, edit assets, and curate media platforms.", pos: [1.5, -2.2, -0.5] },
+  { id: "startups", name: "Startups & Product",    tablerIcon: "ti-rocket",      desc: "Build MVP products, pitch ideas, brainstorm sustainable business models, and learn what it takes to launch a tech startup.", pos: [4, -0.8, -1] },
+  { id: "cyber",    name: "Cybersecurity",         tablerIcon: "ti-shield-lock", desc: "Secure networks, audit applications for vulnerabilities, practice ethical hacking, compete in CTFs, and defend systems.", pos: [3.5, 0, 1.5] },
+  { id: "writing",  name: "Writing & Content",     tablerIcon: "ti-pencil",      desc: "Demystify complex tech. Publish developer docs, technical blogs, run tutorials, and orchestrate podcast scripts and media copy.", pos: [0, 0, 0] },
 ];
 
 const CONNECTIONS = [
@@ -26,142 +29,197 @@ const CONNECTIONS = [
   [6,8],[7,8],
 ];
 
-export default function InteractiveUniverse() {
-  const containerRef = useRef(null);
-  const canvasRef    = useRef(null);
-  const [hoveredNode,  setHoveredNode]  = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const mousePosRef = useRef({ x: -999, y: -999 });
+// ─── 3D Node ───────────────────────────────────────────────────────────────
+function Node3D({ world, isHovered, isSelected, onHover, onSelect }) {
+  const meshRef = useRef();
+  const glowRef = useRef();
 
-  const handleMouseMove = (e) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    mousePosRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  };
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const t = clock.getElapsedTime();
+    // Gentle pulse on hover/select
+    const scale = isHovered || isSelected ? 1.3 + Math.sin(t * 3) * 0.1 : 1;
+    meshRef.current.scale.setScalar(scale);
 
-  const hoveredNodeRef = useRef(hoveredNode);
-  useEffect(() => { hoveredNodeRef.current = hoveredNode; }, [hoveredNode]);
+    if (glowRef.current) {
+      glowRef.current.scale.setScalar(isHovered || isSelected ? 2.5 + Math.sin(t * 2) * 0.3 : 1.5);
+      glowRef.current.material.opacity = isHovered || isSelected ? 0.15 : 0.03;
+    }
+  });
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let raf;
+  return (
+    <Float speed={1.5 + Math.random()} rotationIntensity={0} floatIntensity={0.3}>
+      <group position={world.pos}>
+        {/* Glow sphere (outer) */}
+        <mesh ref={glowRef}>
+          <sphereGeometry args={[0.2, 12, 12]} />
+          <meshBasicMaterial
+            color={GREEN_BRIGHT}
+            transparent
+            opacity={0.03}
+          />
+        </mesh>
 
-    const resize = () => {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width  = rect.width;
-      canvas.height = rect.height;
-    };
-    resize();
-    window.addEventListener("resize", resize);
+        {/* Core node sphere */}
+        <mesh
+          ref={meshRef}
+          onPointerOver={(e) => { e.stopPropagation(); onHover(world.id); }}
+          onPointerOut={() => onHover(null)}
+          onClick={(e) => { e.stopPropagation(); onSelect(world); }}
+        >
+          <sphereGeometry args={[0.12, 16, 16]} />
+          <meshBasicMaterial
+            color={isHovered || isSelected ? GREEN_BRIGHT : "#888880"}
+            transparent
+            opacity={isHovered || isSelected ? 1 : 0.6}
+          />
+        </mesh>
 
-    const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const w = canvas.width;
-      const h = canvas.height;
-      const currentHover = hoveredNodeRef.current;
+        {/* Label */}
+        <Html
+          position={[0, 0.35, 0]}
+          center
+          style={{ pointerEvents: "none", whiteSpace: "nowrap" }}
+        >
+          <span
+            className="text-[9px] font-normal tracking-wider uppercase select-none"
+            style={{
+              color: isHovered || isSelected ? "#F0EDE6" : "#888880",
+              textShadow: "0 0 8px rgba(0,0,0,0.8)",
+              transition: "color 0.2s",
+            }}
+          >
+            {world.name.split(" ")[0]}
+          </span>
+        </Html>
+      </group>
+    </Float>
+  );
+}
 
-      // Connecting lines
-      CONNECTIONS.forEach(([fi, ti]) => {
-        const from = WORLDS[fi];
-        const to   = WORLDS[ti];
-        const fx   = (from.x / 100) * w;
-        const fy   = (from.y / 100) * h;
-        const tx   = (to.x   / 100) * w;
-        const ty   = (to.y   / 100) * h;
+// ─── Connection Lines ──────────────────────────────────────────────────────
+function ConnectionLines({ hoveredNode }) {
+  const geometryRef = useRef();
 
-        const active = currentHover === from.id || currentHover === to.id;
-
-        ctx.beginPath();
-        ctx.moveTo(fx, fy);
-        ctx.lineTo(tx, ty);
-
-        if (active) {
-          ctx.strokeStyle = GREEN;
-          ctx.lineWidth   = 1;
-          ctx.globalAlpha = 0.5;
-        } else {
-          ctx.strokeStyle = "rgba(255,255,255,0.04)";
-          ctx.lineWidth   = 0.5;
-          ctx.globalAlpha = 1;
-        }
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-      });
-
-      raf = requestAnimationFrame(render);
-    };
-
-    render();
-    return () => {
-      window.removeEventListener("resize", resize);
-      cancelAnimationFrame(raf);
+  const { positions, colors } = useMemo(() => {
+    const pos = [];
+    const col = [];
+    CONNECTIONS.forEach(([fi, ti]) => {
+      const from = WORLDS[fi].pos;
+      const to = WORLDS[ti].pos;
+      pos.push(...from, ...to);
+      // Default dim color
+      col.push(1, 1, 1, 1, 1, 1);
+    });
+    return {
+      positions: new Float32Array(pos),
+      colors: new Float32Array(col),
     };
   }, []);
 
+  useFrame(() => {
+    if (!geometryRef.current) return;
+    const colorAttr = geometryRef.current.getAttribute("color");
+    if (!colorAttr) return;
+
+    CONNECTIONS.forEach(([fi, ti], idx) => {
+      const active = hoveredNode === WORLDS[fi].id || hoveredNode === WORLDS[ti].id;
+      const r = active ? 0.18 : 0.3;
+      const g = active ? 0.61 : 0.3;
+      const b = active ? 0.13 : 0.3;
+
+      colorAttr.setXYZ(idx * 2, r, g, b);
+      colorAttr.setXYZ(idx * 2 + 1, r, g, b);
+    });
+    colorAttr.needsUpdate = true;
+  });
+
   return (
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => { mousePosRef.current = { x: -999, y: -999 }; }}
-      className="relative w-full h-[600px] bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-3xl overflow-hidden select-none"
-    >
-      {/* Canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+    <lineSegments>
+      <bufferGeometry ref={geometryRef}>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={colors.length / 3}
+          array={colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <lineBasicMaterial vertexColors transparent opacity={0.25} />
+    </lineSegments>
+  );
+}
 
-      {/* Nodes */}
-      {WORLDS.map((world, idx) => {
-        const isHovered  = hoveredNode  === world.id;
-        const isSelected = selectedNode?.id === world.id;
+// ─── Auto-rotating camera rig ──────────────────────────────────────────────
+function AutoOrbit() {
+  const { camera } = useThree();
 
-        return (
-          <motion.div
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const radius = 8;
+    camera.position.x = Math.sin(t * 0.08) * radius;
+    camera.position.z = Math.cos(t * 0.08) * radius;
+    camera.position.y = Math.sin(t * 0.05) * 1.5 + 1;
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
+
+// ─── Main Export ───────────────────────────────────────────────────────────
+export default function InteractiveUniverse() {
+  const [hoveredNode, setHoveredNode] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+
+  const handleHover = useCallback((id) => setHoveredNode(id), []);
+  const handleSelect = useCallback((world) => setSelectedNode(world), []);
+
+  return (
+    <div className="relative w-full h-[440px] sm:h-[520px] md:h-[600px] bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-2xl sm:rounded-3xl overflow-hidden select-none">
+      {/* Three.js Canvas */}
+      <Canvas
+        camera={{ position: [0, 1, 8], fov: 50 }}
+        dpr={[1, 1.5]}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+      >
+        <color attach="background" args={["#111110"]} />
+        <ambientLight intensity={0.3} />
+
+        {/* Star backdrop */}
+        <Stars radius={30} depth={20} count={400} factor={1.5} saturation={0} fade speed={0.3} />
+
+        {/* Connection lines */}
+        <ConnectionLines hoveredNode={hoveredNode} />
+
+        {/* Nodes */}
+        {WORLDS.map((world) => (
+          <Node3D
             key={world.id}
-            className="absolute z-10"
-            style={{ left: `${world.x}%`, top: `${world.y}%`, transform: "translate(-50%, -50%)" }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: 1,
-              scale: isSelected ? 1.08 : isHovered ? 1.04 : 1,
-              y: [0, Math.sin(idx * 1.3) * 4, 0],
-            }}
-            transition={{
-              opacity: { duration: 0.4, delay: idx * 0.05 },
-              scale:   { duration: 0.2 },
-              y:       { duration: 4 + (idx % 3) * 0.8, repeat: Infinity, ease: "easeInOut" },
-            }}
-          >
-            <button
-              onMouseEnter={() => setHoveredNode(world.id)}
-              onMouseLeave={() => setHoveredNode(null)}
-              onClick={() => setSelectedNode(world)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-full border transition-all duration-200"
-              style={{
-                backgroundColor: isHovered || isSelected ? "rgba(45, 122, 34, 0.08)" : "rgba(16,16,15,0.92)",
-                borderColor:      isHovered || isSelected ? GREEN : "rgba(255,255,255,0.08)",
-                backdropFilter:   "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
-              }}
-            >
-              <i className={`ti ${world.tablerIcon} text-xs`} style={{ color: isHovered || isSelected ? GREEN : "#888880" }} />
-              <span className="text-[10px] font-normal tracking-wider uppercase text-[#F0EDE6]">
-                {world.name.split(" ")[0]}
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isHovered || isSelected ? GREEN : "rgba(255,255,255,0.15)" }} />
-            </button>
-          </motion.div>
-        );
-      })}
+            world={world}
+            isHovered={hoveredNode === world.id}
+            isSelected={selectedNode?.id === world.id}
+            onHover={handleHover}
+            onSelect={handleSelect}
+          />
+        ))}
 
-      {/* Detail panel */}
+        {/* Auto orbit camera */}
+        <AutoOrbit />
+      </Canvas>
+
+      {/* Detail panel overlay (stays as Framer Motion HTML) */}
       <AnimatePresence>
         {selectedNode && (
           <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            className="absolute bottom-5 left-4 right-4 md:left-auto md:right-5 md:w-80 z-20 rounded-2xl p-5 bg-[#111110]/95 backdrop-blur-[20px] border border-[rgba(255,255,255,0.07)]"
+            className="absolute bottom-3 left-3 right-3 sm:bottom-5 sm:left-4 sm:right-4 md:left-auto md:right-5 md:w-80 z-20 rounded-2xl p-4 sm:p-5 bg-[#111110]/95 backdrop-blur-[20px] border border-[rgba(255,255,255,0.07)] shadow-2xl"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -172,9 +230,7 @@ export default function InteractiveUniverse() {
                 </div>
                 <div>
                   <h3 className="text-[#F0EDE6] font-display font-medium text-xs leading-tight">{selectedNode.name}</h3>
-                  <span
-                    className="text-[9px] uppercase font-normal tracking-wider text-[#888880]"
-                  >
+                  <span className="text-[9px] uppercase font-normal tracking-wider text-[#888880]">
                     NACOS Path
                   </span>
                 </div>

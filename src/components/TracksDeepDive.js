@@ -107,12 +107,12 @@ export default function TracksDeepDive() {
             key={track.id}
             id={track.id}
             ref={(el) => (sectionRefs.current[track.id] = el)}
-            className="min-h-screen py-24 md:py-32 bg-section-dark border-b border-[rgba(255,255,255,0.05)]"
+            className="min-h-screen py-16 sm:py-24 md:py-32 bg-section-dark border-b border-[rgba(255,255,255,0.05)]"
           >
-            <div className="max-w-7xl mx-auto px-5">
-              <div className="flex flex-col md:flex-row gap-12 md:gap-20">
-                {/* Sticky sidebar nav */}
-                <div className="md:w-56 flex-shrink-0">
+            <div className="max-w-7xl mx-auto px-4 sm:px-5">
+              <div className="flex flex-col md:flex-row gap-8 sm:gap-12 md:gap-20">
+                {/* Sticky sidebar nav (desktop) */}
+                <div className="hidden md:block md:w-56 flex-shrink-0">
                   <div className="md:sticky md:top-28">
                     <nav className="space-y-1">
                       {TRACKS.map((t) => (
@@ -132,25 +132,28 @@ export default function TracksDeepDive() {
 
                 {/* Content area */}
                 <div className="flex-1 max-w-3xl">
-                  {/* Decorative dot-matrix icon */}
-                  <div className="mb-8">
+                  {/* Decorative dot-matrix icon & Track Pill for mobile */}
+                  <div className="flex items-center justify-between mb-6 sm:mb-8">
                     <div className="dot-matrix-icon text-[#555550]">
                       {Array.from({ length: 25 }, (_, i) => <span key={i} />)}
                     </div>
+                    <span className="md:hidden text-[10px] uppercase tracking-wider text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2.5 py-1 rounded-full font-medium">
+                      Track {idx + 1} of {TRACKS.length}
+                    </span>
                   </div>
 
                   {/* Two-tone heading */}
-                  <div className="mb-10">
+                  <div className="mb-8 sm:mb-10">
                     <NeonHeading bright={track.bright} dim={track.dim} />
                   </div>
 
                   {/* Tab toggles */}
-                  <div className="flex gap-1 mb-8">
+                  <div className="flex flex-wrap gap-2 mb-6 sm:mb-8">
                     {track.tabs.map((tab, tIdx) => (
                       <button
                         key={tIdx}
                         onClick={() => setActiveTab(tIdx)}
-                        className={`px-5 py-2.5 text-sm font-normal rounded-lg border transition-all duration-200 ${
+                        className={`px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-normal rounded-lg border transition-all duration-200 ${
                           currentTab === tIdx
                             ? "bg-white/10 text-white border-white/15"
                             : "bg-transparent text-white/30 border-white/8 hover:text-white/50"
@@ -164,13 +167,13 @@ export default function TracksDeepDive() {
                   {/* Tab content */}
                   <div
                     key={`${track.id}-${currentTab}`}
-                    className="rounded-xl border p-6 md:p-8 mb-10 bg-[#111110] border-[rgba(255,255,255,0.07)]"
+                    className="rounded-xl border p-5 sm:p-6 md:p-8 mb-8 sm:mb-10 bg-[#111110] border-[rgba(255,255,255,0.07)]"
                   >
                     <ul className="space-y-3">
                       {track.tabs[currentTab]?.items.map((item, i) => (
                         <li key={i} className="flex items-start gap-3">
                           <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-[#2D7A22]" />
-                          <span className="text-sm leading-relaxed text-[#888880] font-light">
+                          <span className="text-xs sm:text-sm leading-relaxed text-[#888880] font-light">
                             {item}
                           </span>
                         </li>
@@ -179,13 +182,13 @@ export default function TracksDeepDive() {
                   </div>
 
                   {/* Stats row */}
-                  <div className="flex gap-8">
+                  <div className="flex flex-wrap gap-6 sm:gap-8">
                     {track.stats.map((stat, sIdx) => (
                       <div key={sIdx}>
-                        <p className="text-3xl font-display font-light text-[#F0EDE6]">
+                        <p className="text-2xl sm:text-3xl font-display font-light text-[#F0EDE6]">
                           {stat.value}
                         </p>
-                        <p className="text-xs font-normal mt-1 uppercase tracking-wide text-[#555550]">
+                        <p className="text-[10px] sm:text-xs font-normal mt-1 uppercase tracking-wide text-[#555550]">
                           {stat.label}
                         </p>
                       </div>

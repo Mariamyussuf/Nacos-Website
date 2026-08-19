@@ -201,18 +201,18 @@ const Resources = () => {
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
 
       {/* ====== PAGE HEADER ====== */}
-      <section className="relative py-20 z-10 overflow-hidden">
-        <div className="max-w-4xl mx-auto text-center px-6">
+      <section className="relative py-16 sm:py-20 z-10 overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center px-5 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-6"
+            className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-4 sm:mb-6"
           >
             <span className="w-1.5 h-1.5 bg-[#2D7A22] rounded-full flex-shrink-0" />
             Portal Hub
           </motion.div>
           <motion.h1
-            className="font-display font-medium text-5xl text-white mb-6 leading-tight"
+            className="font-display font-medium text-3xl sm:text-4xl md:text-5xl text-white mb-4 sm:mb-6 leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -231,11 +231,11 @@ const Resources = () => {
       </section>
 
       {/* ====== TABS SECTION ====== */}
-      <section className="relative z-10 py-8 max-w-7xl mx-auto px-6">
-        <div className="flex justify-center gap-4 mb-16">
+      <section className="relative z-10 py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-10 sm:mb-16">
           <button
             onClick={() => { setActiveTab("pq"); setSearchQuery(""); setNavPath([]); }}
-            className={`px-6 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${
+            className={`px-5 sm:px-6 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-2 ${
               activeTab === "pq"
                 ? "bg-[#2D7A22] border-transparent text-[#F0EDE6] scale-102"
                 : "bg-white/[0.02] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
@@ -245,7 +245,7 @@ const Resources = () => {
           </button>
           <button
             onClick={() => setActiveTab("dues")}
-            className={`px-6 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${
+            className={`px-5 sm:px-6 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-2 ${
               activeTab === "dues"
                 ? "bg-[#2D7A22] border-transparent text-[#F0EDE6] scale-102"
                 : "bg-white/[0.02] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
@@ -472,10 +472,10 @@ const Resources = () => {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
                 {/* NACOS Due Card */}
                 <motion.div
-                  className="card p-8 relative overflow-hidden group flex flex-col justify-between"
+                  className="card p-6 sm:p-8 relative overflow-hidden group flex flex-col justify-between"
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
@@ -488,11 +488,11 @@ const Resources = () => {
                       <i className="ti ti-award text-[#2D7A22] text-2xl" />
                     </div>
 
-                    <h3 className="font-display font-medium text-white text-2xl mb-1">NACOS Dues</h3>
+                    <h3 className="font-display font-medium text-white text-xl sm:text-2xl mb-1">NACOS Dues</h3>
                     <p className="text-[#888880] text-xs mb-4">Official Departmental Association dues</p>
                     
                     <div className="my-6">
-                      <span className="text-4xl font-display font-medium text-white">₦8,500</span>
+                      <span className="text-3xl sm:text-4xl font-display font-medium text-white">₦8,500</span>
                       <span className="text-[#555550] text-xs font-normal ml-2">/ Academic Session</span>
                     </div>
 
@@ -516,7 +516,7 @@ const Resources = () => {
 
                 {/* College Due Card */}
                 <motion.div
-                  className="card p-8 relative overflow-hidden group flex flex-col justify-between"
+                  className="card p-6 sm:p-8 relative overflow-hidden group flex flex-col justify-between"
                   initial={{ opacity: 0, x: 30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
@@ -529,11 +529,11 @@ const Resources = () => {
                       <i className="ti ti-building-columns text-[#888880] text-2xl" />
                     </div>
 
-                    <h3 className="font-display font-medium text-white text-2xl mb-1">COLCOMP College Dues</h3>
+                    <h3 className="font-display font-medium text-white text-xl sm:text-2xl mb-1">COLCOMP College Dues</h3>
                     <p className="text-[#888880] text-xs mb-4">College of Computing representative dues</p>
                     
                     <div className="my-6">
-                      <span className="text-4xl font-display font-medium text-white">₦10,000</span>
+                      <span className="text-3xl sm:text-4xl font-display font-medium text-white">₦10,000</span>
                       <span className="text-[#555550] text-xs font-normal ml-2">/ Semester</span>
                     </div>
 

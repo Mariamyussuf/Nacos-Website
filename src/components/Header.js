@@ -79,15 +79,15 @@ const Header = () => {
             </div>
           </NavLink>
 
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Nav Links (1024px+) */}
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map(link => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.to === "/"}
                 className={({ isActive }) =>
-                  `nav-link px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                  `nav-link px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
                     ? "text-white bg-white/[0.06]"
                     : "text-[#888880] hover:text-white hover:bg-white/[0.04]"
                   }`
@@ -98,12 +98,12 @@ const Header = () => {
             ))}
           </div>
 
-          {/* Desktop Actions & Socials (WhatsApp, GitHub, Portal, Join) */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Desktop Actions & Socials (1024px+) */}
+          <div className="hidden lg:flex items-center gap-3 xl:gap-4">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="text-[#888880] hover:text-[#2D7A22] transition-colors duration-200 text-lg flex items-center justify-center p-1"
+              className="text-[#888880] hover:text-[#2D7A22] transition-colors duration-200 text-lg flex items-center justify-center p-1.5 rounded-md hover:bg-white/[0.04]"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
               aria-label="Toggle theme"
             >
@@ -115,7 +115,7 @@ const Header = () => {
               href="https://chat.whatsapp.com/nacos-bells-community"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#888880] hover:text-[#2D7A22] transition-colors duration-200 text-lg"
+              className="text-[#888880] hover:text-[#2D7A22] transition-colors duration-200 text-lg p-1.5 rounded-md hover:bg-white/[0.04]"
               title="Join WhatsApp Community"
             >
               <i className="ti ti-brand-whatsapp" />
@@ -138,7 +138,7 @@ const Header = () => {
             {/* Portal Button */}
             <NavLink
               to="/portal"
-              className="px-4 py-2 border border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.12)] text-[#888880] hover:text-[#F0EDE6] bg-white/[0.02] text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-300"
+              className="px-3.5 py-1.5 border border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.12)] text-[#888880] hover:text-[#F0EDE6] bg-white/[0.02] text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-300"
             >
               Portal
             </NavLink>
@@ -146,28 +146,40 @@ const Header = () => {
             {/* Join NACOS Button */}
             <NavLink
               to="/contact"
-              className="px-5 py-2 bg-[#2D7A22] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-full hover:bg-[#3A9C2D] transition-all duration-300 hover:scale-102"
+              className="px-4 py-1.5 bg-[#2D7A22] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-full hover:bg-[#3A9C2D] transition-all duration-300 hover:scale-102"
             >
               Join NACOS
             </NavLink>
           </div>
 
-          {/* Mobile toggle */}
-          <button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg text-[#888880] hover:text-white hover:bg-white/[0.05] transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {isMenuOpen
-                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              }
-            </svg>
-          </button>
+          {/* Mobile & Tablet toggle (< 1024px) */}
+          <div className="lg:hidden flex items-center gap-2">
+            {/* Quick theme toggle on mobile bar */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-9 h-9 rounded-lg text-[#888880] hover:text-[#2D7A22] hover:bg-white/[0.05] transition-colors text-base"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle theme"
+            >
+              <i className={theme === "dark" ? "ti ti-sun" : "ti ti-moon"} />
+            </button>
+
+            <button
+              className="flex items-center justify-center w-10 h-10 rounded-lg text-[#888880] hover:text-white hover:bg-white/[0.05] transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMenuOpen
+                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                }
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile & Tablet menu drawer */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -176,17 +188,17 @@ const Header = () => {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden overflow-hidden border-t border-[rgba(255,255,255,0.07)] bg-[#0A0A08]"
+              className="lg:hidden overflow-hidden border-t border-[rgba(255,255,255,0.07)] bg-[#0A0A08]/98 backdrop-blur-xl max-h-[calc(100vh-5rem)] overflow-y-auto"
             >
-              <div className="py-3 space-y-1">
+              <div className="py-3 px-2 space-y-1">
                 {navLinks.map(link => (
                   <NavLink
                     key={link.to}
                     to={link.to}
                     end={link.to === "/"}
                     className={({ isActive }) =>
-                      `block px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                        ? "text-[#2D7A22] bg-[#2D7A22]/[0.06]"
+                      `block px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
+                        ? "text-[#2D7A22] bg-[#2D7A22]/[0.08]"
                         : "text-[#888880] hover:text-white hover:bg-white/[0.04]"
                       }`
                     }
@@ -197,25 +209,15 @@ const Header = () => {
                 ))}
 
                 {/* Mobile Social & CTA */}
-                <div className="px-4 py-3 border-t border-[rgba(255,255,255,0.07)] flex flex-col gap-3">
-                  <div className="flex items-center gap-4 justify-center py-2 flex-wrap">
-                    {/* Mobile Theme Toggle */}
-                    <button
-                      onClick={toggleTheme}
-                      className="flex items-center gap-2 text-[#888880] hover:text-[#2D7A22] transition-colors duration-200 text-sm"
-                    >
-                      <i className={theme === "dark" ? "ti ti-sun" : "ti ti-moon"} />
-                      <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-                    </button>
-                    <span className="text-[#555550]">|</span>
-
+                <div className="pt-3 pb-4 border-t border-[rgba(255,255,255,0.07)] flex flex-col gap-3 px-2">
+                  <div className="flex items-center gap-4 justify-center py-2 flex-wrap text-sm text-[#888880]">
                     <a
                       href="https://chat.whatsapp.com/nacos-bells-community"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-[#888880] hover:text-[#2D7A22] transition-colors duration-200 text-sm"
+                      className="flex items-center gap-1.5 hover:text-[#2D7A22] transition-colors py-1"
                     >
-                      <i className="ti ti-brand-whatsapp text-lg" /> WhatsApp
+                      <i className="ti ti-brand-whatsapp text-base" /> WhatsApp
                     </a>
                     
                     <span className="text-[#555550]">|</span>
@@ -224,9 +226,9 @@ const Header = () => {
                       href="https://github.com/nacos-bells"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-[#888880] hover:text-white transition-colors duration-200 text-sm"
+                      className="flex items-center gap-1.5 hover:text-white transition-colors py-1"
                     >
-                      <i className="ti ti-brand-github text-lg" /> GitHub
+                      <i className="ti ti-brand-github text-base" /> GitHub (500+)
                     </a>
                   </div>
 
@@ -234,7 +236,7 @@ const Header = () => {
                   <NavLink
                     to="/portal"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block text-center py-2.5 border border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-300"
+                    className="block text-center py-3 border border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-xl transition-all duration-300"
                   >
                     Student Portal
                   </NavLink>
@@ -243,7 +245,7 @@ const Header = () => {
                   <NavLink
                     to="/contact"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block text-center py-2.5 bg-[#2D7A22] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-full transition-all duration-300"
+                    className="block text-center py-3 bg-[#2D7A22] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-xl transition-all duration-300"
                   >
                     Join NACOS
                   </NavLink>

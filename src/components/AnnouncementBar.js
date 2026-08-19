@@ -16,7 +16,7 @@ export default function AnnouncementBar() {
         transition={{ duration: 0.3 }}
         className="announcement-bar"
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 sm:gap-3 pr-8 pl-3 sm:px-4">
           <span className="w-1.5 h-1.5 bg-[#2D7A22] rounded-full flex-shrink-0" />
           <span className="text-[#888880] text-[11px] font-normal tracking-wide">
             <strong className="text-[#F0EDE6] font-medium">NACOS Tech Fest '26</strong>

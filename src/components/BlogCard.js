@@ -20,7 +20,7 @@ const BlogCard = ({ title, date, excerpt, category, author, readTime, delay = 0,
           />
         </div>
       )}
-      <div className="p-6">
+      <div className="p-5 sm:p-6">
         {/* Category */}
         <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-3 inline-block font-normal">
           {category}
@@ -43,7 +43,7 @@ const BlogCard = ({ title, date, excerpt, category, author, readTime, delay = 0,
         )}
 
         {/* Meta */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-[rgba(255,255,255,0.07)]">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-4 border-t border-[rgba(255,255,255,0.07)]">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
               <span className="text-[#F0EDE6] text-xs font-normal">{author?.[0]}</span>

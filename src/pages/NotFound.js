@@ -12,16 +12,16 @@ const NotFound = () => (
     </div>
 
     <motion.div
-      className="relative z-10 text-center px-6 max-w-lg"
+      className="relative z-10 text-center px-5 sm:px-6 max-w-lg"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="w-24 h-24 rounded-3xl bg-[#0CCF00]/10 border border-[#0CCF00]/20 flex items-center justify-center mx-auto mb-8">
-        <i className="ti ti-error-404 text-[#0CCF00] text-5xl" />
+      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-[#0CCF00]/10 border border-[#0CCF00]/20 flex items-center justify-center mx-auto mb-6 sm:mb-8">
+        <i className="ti ti-error-404 text-[#0CCF00] text-4xl sm:text-5xl" />
       </div>
 
-      <h1 className="font-display font-black text-7xl text-white mb-4">
+      <h1 className="font-display font-black text-5xl sm:text-7xl text-white mb-4">
         4<span className="text-[#0CCF00] glow-green">0</span>4
       </h1>
       <p className="text-[#999999] text-lg mb-2 font-display font-bold">

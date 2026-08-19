@@ -43,9 +43,9 @@ const Login = () => {
   };
 
   return (
-    <div className="pt-16 bg-[#0A0A08] min-h-screen flex items-center justify-center text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
+    <div className="pt-20 pb-12 px-4 sm:px-6 bg-[#0A0A08] min-h-screen flex items-center justify-center text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
       <motion.div
-        className="bg-[#111110] border border-[rgba(255,255,255,0.07)] p-8 rounded-xl max-w-sm w-full relative overflow-hidden"
+        className="bg-[#111110] border border-[rgba(255,255,255,0.07)] p-6 sm:p-8 rounded-xl max-w-sm w-full relative overflow-hidden shadow-2xl"
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}

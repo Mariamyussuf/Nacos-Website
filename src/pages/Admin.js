@@ -374,53 +374,55 @@ export default function Admin() {
 
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
           
           {/* ====== SIDEBAR ====== */}
           <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
-            <div className="p-4 border border-[rgba(255,255,255,0.07)] bg-[#111110] rounded-xl mb-4 text-center">
+            <div className="p-4 border border-[rgba(255,255,255,0.07)] bg-[#111110] rounded-xl mb-2 sm:mb-4 text-center">
               <span className="text-[10px] uppercase tracking-widest text-[#888880] block mb-1">Administrative Role</span>
               <h2 className="text-white font-display font-medium text-sm">NACOS Administrator</h2>
             </div>
             
-            <button
-              onClick={() => { setActiveSection("blogs"); resetForms(); }}
-              className={`w-full px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                activeSection === "blogs"
-                  ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                  : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-              }`}
-            >
-              <i className="ti ti-news text-base" />
-              Manage Blogs
-            </button>
-            <button
-              onClick={() => { setActiveSection("events"); resetForms(); }}
-              className={`w-full px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                activeSection === "events"
-                  ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                  : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-              }`}
-            >
-              <i className="ti ti-calendar-event text-base" />
-              Manage Events
-            </button>
-            <button
-              onClick={() => { setActiveSection("resources"); resetForms(); }}
-              className={`w-full px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                activeSection === "resources"
-                  ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                  : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-              }`}
-            >
-              <i className="ti ti-books text-base" />
-              Manage Resources
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-2">
+              <button
+                onClick={() => { setActiveSection("blogs"); resetForms(); }}
+                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
+                  activeSection === "blogs"
+                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
+                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
+                }`}
+              >
+                <i className="ti ti-news text-base" />
+                Manage Blogs
+              </button>
+              <button
+                onClick={() => { setActiveSection("events"); resetForms(); }}
+                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
+                  activeSection === "events"
+                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
+                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
+                }`}
+              >
+                <i className="ti ti-calendar-event text-base" />
+                Manage Events
+              </button>
+              <button
+                onClick={() => { setActiveSection("resources"); resetForms(); }}
+                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
+                  activeSection === "resources"
+                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
+                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
+                }`}
+              >
+                <i className="ti ti-books text-base" />
+                Manage Resources
+              </button>
+            </div>
           </aside>
 
           {/* ====== WORKSPACE ====== */}
-          <main className="flex-1 bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-xl p-8">
+          <main className="flex-1 bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-xl p-5 sm:p-8">
             
             {/* Header / Stats Panel */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-[rgba(255,255,255,0.07)]">

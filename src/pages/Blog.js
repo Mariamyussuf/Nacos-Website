@@ -70,20 +70,20 @@ const Blog = () => {
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
       {/* ====== PAGE HEADER ====== */}
-      <section className="relative py-24 z-10 overflow-hidden">
+      <section className="relative py-16 sm:py-24 z-10 overflow-hidden">
         <motion.div
-          className="relative z-10 text-center max-w-4xl mx-auto px-6"
+          className="relative z-10 text-center max-w-4xl mx-auto px-5 sm:px-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-6">
+          <span className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-4 sm:mb-6">
             Updates & Stories
           </span>
-          <h1 className="font-display font-medium text-5xl text-white mb-6 leading-tight">
+          <h1 className="font-display font-medium text-3xl sm:text-4xl md:text-5xl text-white mb-4 sm:mb-6 leading-tight">
             NACOS <span className="font-medium text-[#2D7A22]">Blog</span>
           </h1>
-          <p className="text-[#888880] text-lg leading-relaxed max-w-2xl mx-auto font-light">
+          <p className="text-[#888880] text-base sm:text-lg leading-relaxed max-w-2xl mx-auto font-light">
             News, event recaps, tech tips, and stories from NACOS Bells Chapter.
             Stay in the loop with everything happening in our community.
           </p>
@@ -91,7 +91,7 @@ const Blog = () => {
       </section>
 
       {/* ====== BLOG CONTENTS ====== */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {blogPosts.length === 0 ? (
           <div className="text-center py-20 bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-xl max-w-2xl mx-auto">
             <i className="ti ti-article-off text-4xl text-[#555550] mb-4 block" />
@@ -105,19 +105,19 @@ const Blog = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-              className="relative glow-card overflow-hidden mb-12 group cursor-pointer"
+              className="relative glow-card overflow-hidden mb-8 sm:mb-12 group cursor-pointer"
               onClick={() => setExpandedPost(expandedPost === 0 ? null : 0)}
             >
-              <div className="p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center">
+              <div className="p-6 sm:p-8 md:p-12 grid md:grid-cols-2 gap-6 sm:gap-8 items-center">
                 <div className="relative z-10">
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-4 inline-block font-normal">✨ Featured Post</span>
-                  <h2 className="font-display font-medium text-[#F0EDE6] text-2xl md:text-3xl leading-tight mb-4 group-hover:text-white transition-colors">
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-3 sm:mb-4 inline-block font-normal">✨ Featured Post</span>
+                  <h2 className="font-display font-medium text-[#F0EDE6] text-xl sm:text-2xl md:text-3xl leading-tight mb-3 sm:mb-4 group-hover:text-white transition-colors">
                     {blogPosts[0].title}
                   </h2>
                   <p className="text-[#888880] leading-relaxed mb-6 font-light text-[13px]">{blogPosts[0].excerpt}</p>
-                  <div className="flex items-center gap-4 text-xs text-[#888880] font-light">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[#888880] font-light">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
                         <span className="text-[#F0EDE6] text-xs font-normal">P</span>
                       </div>
                       <span>{blogPosts[0].author}</span>

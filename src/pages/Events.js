@@ -227,18 +227,18 @@ const Events = () => {
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
 
       {/* ====== PAGE HEADER ====== */}
-      <section className="relative py-20 z-10 overflow-hidden">
-        <div className="max-w-4xl mx-auto text-center px-6">
+      <section className="relative py-16 sm:py-20 z-10 overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center px-5 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-6"
+            className="inline-flex items-center gap-2 border border-[rgba(255,255,255,0.07)] bg-white/[0.02] px-4 py-1.5 rounded-full text-[#888880] text-xs font-normal uppercase tracking-widest mb-4 sm:mb-6"
           >
             <span className="w-1.5 h-1.5 bg-[#2D7A22] rounded-full flex-shrink-0" />
             Events Coordinator
           </motion.div>
           <motion.h1
-            className="font-display font-medium text-5xl text-white mb-6 leading-tight"
+            className="font-display font-medium text-3xl sm:text-4xl md:text-5xl text-white mb-4 sm:mb-6 leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -257,11 +257,11 @@ const Events = () => {
       </section>
 
       {/* ====== TAB NAVIGATION ====== */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 mb-8">
-        <div className="flex justify-center gap-4">
+      <section className="relative z-10 max-w-7xl mx-auto px-5 sm:px-6 mb-8">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <button
             onClick={() => { setActiveTab("upcoming"); setActiveCategory("All"); }}
-            className={`px-5 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${
+            className={`px-5 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-2 ${
               activeTab === "upcoming"
                 ? "bg-[#2D7A22] border-transparent text-[#F0EDE6] scale-102"
                 : "bg-white/[0.02] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
@@ -271,7 +271,7 @@ const Events = () => {
           </button>
           <button
             onClick={() => { setActiveTab("outgoing"); setActiveCategory("All"); }}
-            className={`px-5 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${
+            className={`px-5 py-3 rounded-full font-medium text-xs uppercase tracking-wider border transition-all duration-300 flex items-center justify-center gap-2 ${
               activeTab === "outgoing"
                 ? "bg-[#2D7A22] border-transparent text-[#F0EDE6] scale-102"
                 : "bg-white/[0.02] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
@@ -469,13 +469,13 @@ const Events = () => {
       <AnimatePresence>
         {selectedEvent && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+              className="bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto md:overflow-hidden flex flex-col md:flex-row relative shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
               initial={{ scale: 0.98, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.98, y: 10 }}
@@ -484,40 +484,41 @@ const Events = () => {
               {/* Close Button */}
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-[#2D7A22] hover:text-[#F0EDE6] border border-[rgba(255,255,255,0.07)] hover:border-transparent text-white flex items-center justify-center transition-all"
+                className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 hover:bg-[#2D7A22] hover:text-[#F0EDE6] border border-[rgba(255,255,255,0.07)] hover:border-transparent text-white flex items-center justify-center transition-all"
+                aria-label="Close modal"
               >
                 <i className="ti ti-x text-sm" />
               </button>
 
               {/* Left Column: Flier */}
-              <div className="w-full md:w-1/2 h-64 md:h-auto overflow-hidden bg-black flex items-center justify-center relative">
+              <div className="w-full md:w-1/2 h-52 sm:h-64 md:h-auto shrink-0 overflow-hidden bg-black flex items-center justify-center relative">
                 <img
                   src={selectedEvent.flier}
                   alt={selectedEvent.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur border border-[rgba(255,255,255,0.07)] px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#888880]">
+                <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-black/60 backdrop-blur border border-[rgba(255,255,255,0.07)] px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-medium text-[#888880]">
                   Official Event Flier
                 </div>
               </div>
 
               {/* Right Column: Commentary & Media Gallery */}
-              <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto flex flex-col justify-between max-h-[90vh] md:max-h-none">
+              <div className="w-full md:w-1/2 p-5 sm:p-6 md:p-8 overflow-y-auto flex flex-col justify-between">
                 <div>
                   <span className={`text-[9px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-md inline-block mb-3 ${categoryColors[selectedEvent.category]}`}>
                     {selectedEvent.category}
                   </span>
-                  <h2 className="font-display font-medium text-2xl text-white mb-2 leading-tight">
+                  <h2 className="font-display font-medium text-xl sm:text-2xl text-white mb-2 leading-tight">
                     {selectedEvent.title}
                   </h2>
                   
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#888880] mb-6 font-normal pb-4 border-b border-[rgba(255,255,255,0.07)]">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#888880] mb-4 sm:mb-6 font-normal pb-3 sm:pb-4 border-b border-[rgba(255,255,255,0.07)]">
                     <span className="flex items-center gap-1.5"><i className="ti ti-calendar text-[#2D7A22]" /> {selectedEvent.date}</span>
                     <span className="flex items-center gap-1.5"><i className="ti ti-map-pin text-[#888880]" /> {selectedEvent.venue}</span>
                   </div>
 
                   {/* Commentary */}
-                  <div className="mb-6">
+                  <div className="mb-5 sm:mb-6">
                     <h4 className="text-white font-display font-medium text-xs uppercase tracking-wider mb-2">Event Commentary</h4>
                     <p className="text-[#888880] text-xs leading-relaxed font-light">
                       {selectedEvent.commentary}
@@ -548,7 +549,7 @@ const Events = () => {
                   </div>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-[rgba(255,255,255,0.07)] flex gap-2">
+                <div className="mt-6 sm:mt-8 pt-4 border-t border-[rgba(255,255,255,0.07)] flex gap-2">
                   <button
                     onClick={() => setSelectedEvent(null)}
                     className="w-full py-2.5 rounded-md bg-[#1A1A17] hover:bg-[#2D7A22] hover:text-[#F0EDE6] border border-[rgba(255,255,255,0.07)] hover:border-transparent text-[#888880] hover:text-white font-medium text-xs transition-all flex items-center justify-center gap-2"
