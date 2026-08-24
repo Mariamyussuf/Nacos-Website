@@ -1,4 +1,13 @@
-const API_BASE_URL = "http://localhost:3001/api";
+export const BACKEND_URL = "http://localhost:3001";
+export const API_BASE_URL = `${BACKEND_URL}/api`;
+
+export const resolveAssetUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("/uploads")) {
+    return `${BACKEND_URL}${url}`;
+  }
+  return url;
+};
 
 /** Helper to make fetch calls with credentials (session cookies) */
 async function apiFetch(url, options = {}) {
@@ -30,6 +39,10 @@ export const subscribe = async (email) => {
     }
     throw error;
   }
+};
+
+export const getSubscribers = async () => {
+  return apiFetch(`${API_BASE_URL}/subscribers`);
 };
 
 // ─── Blog ──────────────────────────────────────────────────────────────────────

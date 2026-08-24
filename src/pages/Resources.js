@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../components/Toast";
+import { getResources, downloadResource } from "../components/api";
 
 const DEPARTMENTS = [
   "Computer Sciences",
@@ -136,17 +137,40 @@ const Resources = () => {
   const [navPath, setNavPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [pastQuestionsList] = useState(() => {
+  const [pastQuestionsList, setPastQuestionsList] = useState(() => {
     const saved = localStorage.getItem("past_questions");
     return saved ? JSON.parse(saved) : PAST_QUESTIONS;
   });
+
+  // Fetch resources from NestJS API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchResources = async () => {
+      try {
+        const data = await getResources();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setPastQuestionsList(data);
+          localStorage.setItem("past_questions", JSON.stringify(data));
+        }
+      } catch (err) {
+        console.warn("Could not fetch resources from API, using fallback cache:", err.message);
+      }
+    };
+    fetchResources();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleFolderClick = (node) => {
     setNavPath([...navPath, node]);
   };
 
   const handleDownload = (pq) => {
-    if (pq.fileData) {
+    if (pq.id && pq.filePath) {
+      showToast(`Downloading ${pq.code} PDF...`, "success");
+      downloadResource(pq.id);
+    } else if (pq.fileData) {
       try {
         const link = document.createElement("a");
         link.href = pq.fileData;

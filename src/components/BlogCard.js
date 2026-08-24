@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { resolveAssetUrl } from "./api";
 
 const BlogCard = ({
   id,
@@ -28,7 +29,7 @@ const BlogCard = ({
         {image ? (
           <div className="h-44 sm:h-48 w-full overflow-hidden border-b border-[rgba(255,255,255,0.07)] relative">
             <img
-              src={image}
+              src={resolveAssetUrl(image)}
               alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"

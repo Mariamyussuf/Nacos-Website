@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getEvents, resolveAssetUrl } from "../components/api";
 
 // Import flier and gallery assets
 import deptFlyer from "../assets/dept_flyer.jpg";
@@ -206,10 +207,30 @@ const Events = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedGalleryImg, setSelectedGalleryImg] = useState(null);
 
-  const [eventsList] = useState(() => {
+  const [eventsList, setEventsList] = useState(() => {
     const saved = localStorage.getItem("events");
     return saved ? JSON.parse(saved) : OUTGOING_EVENTS;
   });
+
+  // Fetch events from NestJS API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchEvents = async () => {
+      try {
+        const data = await getEvents();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setEventsList(data);
+          localStorage.setItem("events", JSON.stringify(data));
+        }
+      } catch (err) {
+        console.warn("Could not fetch events from API, using fallback cache:", err.message);
+      }
+    };
+    fetchEvents();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const currentEventsList = eventsList.filter(e => {
     if (activeTab === "upcoming") {
@@ -361,7 +382,7 @@ const Events = () => {
                 >
                   <div className="h-48 overflow-hidden relative">
                     <img 
-                      src={event.flier} 
+                      src={resolveAssetUrl(event.flier)} 
                       alt={event.title} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -427,7 +448,7 @@ const Events = () => {
                         >
                           <div className="h-44 overflow-hidden relative">
                             <img 
-                              src={event.flier} 
+                              src={resolveAssetUrl(event.flier)} 
                               alt={event.title} 
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
@@ -493,7 +514,7 @@ const Events = () => {
               {/* Left Column: Flier */}
               <div className="w-full md:w-1/2 h-52 sm:h-64 md:h-auto shrink-0 overflow-hidden bg-black flex items-center justify-center relative">
                 <img
-                  src={selectedEvent.flier}
+                  src={resolveAssetUrl(selectedEvent.flier)}
                   alt={selectedEvent.title}
                   className="w-full h-full object-cover"
                 />
@@ -536,7 +557,7 @@ const Events = () => {
                           className="h-16 rounded-lg overflow-hidden cursor-pointer border border-[rgba(255,255,255,0.07)] hover:border-[#2D7A22] transition-colors relative group"
                         >
                           <img
-                            src={imgSrc}
+                            src={resolveAssetUrl(imgSrc)}
                             alt="Gallery preview"
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
@@ -581,7 +602,7 @@ const Events = () => {
               transition={{ duration: 0.3 }}
             >
               <img
-                src={selectedGalleryImg}
+                src={resolveAssetUrl(selectedGalleryImg)}
                 alt="Enlarged gallery view"
                 className="w-full h-full object-contain"
               />

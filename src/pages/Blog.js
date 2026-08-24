@@ -5,6 +5,7 @@ import BlogReaderModal from "../components/BlogReaderModal";
 import { Link, useLocation } from "react-router-dom";
 import { INITIAL_BLOG_POSTS } from "../data/blogData";
 import { useToast } from "../components/Toast";
+import { getBlogs, resolveAssetUrl } from "../components/api";
 
 const CATEGORIES = ["All", "News", "Events", "Tech Tips", "Student Life", "Saved"];
 
@@ -32,6 +33,26 @@ const Blog = () => {
     } catch (e) {}
     return INITIAL_BLOG_POSTS;
   });
+
+  // Fetch latest blogs from NestJS backend
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBlogs = async () => {
+      try {
+        const data = await getBlogs();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setBlogPosts(data);
+          localStorage.setItem("blogs", JSON.stringify(data));
+        }
+      } catch (err) {
+        console.warn("Could not fetch blogs from API, using fallback cache:", err.message);
+      }
+    };
+    fetchBlogs();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Listen to cross-tab and admin changes
   useEffect(() => {
@@ -256,7 +277,7 @@ const Blog = () => {
                   <div className="relative z-10 h-56 sm:h-72 rounded-xl overflow-hidden border border-[rgba(255,255,255,0.07)]">
                     {filteredPosts[0].image ? (
                       <img
-                        src={filteredPosts[0].image}
+                        src={resolveAssetUrl(filteredPosts[0].image)}
                         alt={filteredPosts[0].title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "./Toast";
+import { resolveAssetUrl } from "./api";
 
 export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost }) {
   const showToast = useToast();
@@ -226,7 +227,7 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
             {/* Cover Image (if available) */}
             {post.image && (
               <div className="w-full h-56 sm:h-80 rounded-xl overflow-hidden border border-[rgba(255,255,255,0.07)]">
-                <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                <img src={resolveAssetUrl(post.image)} alt={post.title} className="w-full h-full object-cover" />
               </div>
             )}
 
