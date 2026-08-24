@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "./Toast";
 import { resolveAssetUrl } from "./api";
 
-export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost }) {
+export default function BlogReaderModal({ post, isOpen, onClose }) {
   const showToast = useToast();
   const [isSaved, setIsSaved] = useState(false);
+  const [readProgress, setReadProgress] = useState(0);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     if (!post) return;
@@ -15,6 +17,7 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
     } catch (e) {
       setIsSaved(false);
     }
+    setReadProgress(0);
   }, [post]);
 
   useEffect(() => {
@@ -32,6 +35,18 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
   }, [isOpen, onClose]);
 
   if (!isOpen || !post) return null;
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const maxScroll = scrollHeight - clientHeight;
+    if (maxScroll <= 0) {
+      setReadProgress(100);
+      return;
+    }
+    const currentProgress = Math.min(100, Math.max(0, Math.round((scrollTop / maxScroll) * 100)));
+    setReadProgress(currentProgress);
+  };
 
   const toggleSave = () => {
     try {
@@ -54,20 +69,27 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
     }
   };
 
+  const getShareUrl = () => `${window.location.origin}/blog#${post.id || encodeURIComponent(post.title)}`;
+
   const copyArticleLink = () => {
-    const url = `${window.location.origin}/blog#${post.id || encodeURIComponent(post.title)}`;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(getShareUrl());
     showToast("Article link copied to clipboard!", "success");
   };
 
   const shareWhatsApp = () => {
-    const text = `Read "${post.title}" on NACOS Bells Blog: ${window.location.origin}/blog`;
+    const text = `📖 Read "${post.title}" on the NACOS Bells Chapter Blog:\n${getShareUrl()}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const shareTwitter = () => {
-    const text = `Check out "${post.title}" via @nacosbells: ${window.location.origin}/blog`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+    const text = `Check out "${post.title}" published by @nacosbells 🚀`;
+    const url = getShareUrl();
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
+  };
+
+  const shareLinkedIn = () => {
+    const url = getShareUrl();
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank");
   };
 
   // Helper to render formatted markdown-like content blocks
@@ -159,13 +181,26 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
           transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
           className="relative w-full max-w-3xl bg-[#111110] border border-[rgba(255,255,255,0.1)] rounded-2xl shadow-2xl overflow-hidden z-10 my-8 max-h-[90vh] flex flex-col"
         >
+          {/* Scroll Reading Progress Bar along top edge */}
+          <div className="w-full bg-[rgba(255,255,255,0.05)] h-1 sticky top-0 z-30 overflow-hidden">
+            <div
+              className="h-full bg-[#2D7A22] shadow-[0_0_10px_#2D7A22] transition-all duration-150 ease-out"
+              style={{ width: `${readProgress}%` }}
+            />
+          </div>
+
           {/* Top Bar / Header Action Controls */}
-          <div className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-[rgba(255,255,255,0.07)] bg-[#111110]/95 backdrop-blur-sm sticky top-0 z-20">
+          <div className="flex items-center justify-between px-5 sm:px-8 py-3.5 border-b border-[rgba(255,255,255,0.07)] bg-[#111110]/95 backdrop-blur-sm sticky top-1 z-20">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2D7A22]/15 text-[#3A9C2D] border border-[#2D7A22]/30 text-[10px] sm:text-xs uppercase tracking-widest font-medium">
                 {post.category}
               </span>
               <span className="text-[#888880] text-xs font-light">· {post.readTime}</span>
+              {readProgress > 0 && (
+                <span className="hidden sm:inline-block text-[10px] text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2 py-0.5 rounded font-mono">
+                  {readProgress}% read
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -203,8 +238,11 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
           </div>
 
           {/* Scrollable Reader Content */}
-          <div className="overflow-y-auto px-5 sm:px-8 md:px-10 py-6 sm:py-8 space-y-6">
-            
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="overflow-y-auto px-5 sm:px-8 md:px-10 py-6 sm:py-8 space-y-6 flex-1"
+          >
             {/* Title & Author Info */}
             <div>
               <h1 className="font-display font-medium text-2xl sm:text-3xl md:text-4xl text-[#F0EDE6] text-white leading-tight mb-4">
@@ -257,22 +295,36 @@ export default function BlogReaderModal({ post, isOpen, onClose, onSelectPost })
                 <h4 className="text-sm font-medium text-[#F0EDE6] text-white mb-0.5">Found this article valuable?</h4>
                 <p className="text-xs text-[#888880] font-light">Share it with your classmates and fellow computing students.</p>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
                 <button
+                  type="button"
                   onClick={shareWhatsApp}
-                  className="px-3.5 py-2 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  title="Share on WhatsApp"
                 >
                   <i className="ti ti-brand-whatsapp text-sm" /> WhatsApp
                 </button>
                 <button
+                  type="button"
                   onClick={shareTwitter}
-                  className="px-3.5 py-2 rounded-lg bg-[#1DA1F2]/15 hover:bg-[#1DA1F2]/25 text-[#1DA1F2] border border-[#1DA1F2]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-[#1DA1F2]/15 hover:bg-[#1DA1F2]/25 text-[#1DA1F2] border border-[#1DA1F2]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  title="Share on X / Twitter"
                 >
-                  <i className="ti ti-brand-twitter text-sm" /> Share
+                  <i className="ti ti-brand-twitter text-sm" /> X
                 </button>
                 <button
+                  type="button"
+                  onClick={shareLinkedIn}
+                  className="px-3 py-1.5 rounded-lg bg-[#0A66C2]/15 hover:bg-[#0A66C2]/25 text-[#70B5F9] border border-[#0A66C2]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  title="Share on LinkedIn"
+                >
+                  <i className="ti ti-brand-linkedin text-sm" /> LinkedIn
+                </button>
+                <button
+                  type="button"
                   onClick={copyArticleLink}
-                  className="px-3.5 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[#F0EDE6] border border-[rgba(255,255,255,0.1)] text-xs font-medium flex items-center gap-1.5 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[#F0EDE6] border border-[rgba(255,255,255,0.1)] text-xs font-medium flex items-center gap-1.5 transition-all"
+                  title="Copy Link"
                 >
                   <i className="ti ti-link text-sm" /> Copy
                 </button>

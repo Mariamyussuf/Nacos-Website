@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "../components/Toast";
+import { sendContactMessage } from "../components/api";
 
 const InfoCard = ({ icon, title, lines }) => (
   <motion.div
@@ -24,21 +25,33 @@ const Contact = () => {
   const showToast = useToast();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     if (!form.name || !form.email || !form.message) {
       setError("Please fill in all required fields.");
       return;
     }
-    showToast("Message sent successfully! We'll get back to you soon.", "success");
-    setSent(true);
+
+    setLoading(true);
+    try {
+      const res = await sendContactMessage(form);
+      showToast(res.message || "Message sent successfully! We'll get back to you soon.", "success");
+      setSent(true);
+    } catch (err) {
+      setError(err.message || "Failed to deliver message. Please try again.");
+      showToast("Delivery failed. Please try again.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] relative selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
@@ -164,10 +177,16 @@ const Contact = () => {
                   />
                 </div>
 
-                <button type="submit" className="btn-primary w-full py-2.5">
-                  Send Message
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full py-2.5 flex items-center justify-center gap-2"
+                >
+                  {loading && <i className="ti ti-loader-2 animate-spin text-base" />}
+                  <span>{loading ? "Sending..." : "Send Message"}</span>
                 </button>
               </form>
+
             )}
           </motion.div>
 

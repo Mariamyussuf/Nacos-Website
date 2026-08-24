@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getEvents, resolveAssetUrl } from "../components/api";
+import EventRegisterModal from "../components/EventRegisterModal";
+
 
 // Import flier and gallery assets
 import deptFlyer from "../assets/dept_flyer.jpg";
@@ -206,6 +208,8 @@ const Events = () => {
   // Modal states
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedGalleryImg, setSelectedGalleryImg] = useState(null);
+  const [registeringEvent, setRegisteringEvent] = useState(null);
+
 
   const [eventsList, setEventsList] = useState(() => {
     const saved = localStorage.getItem("events");
@@ -406,12 +410,26 @@ const Events = () => {
                       <p className="text-[#888880] text-xs leading-relaxed mt-2 line-clamp-2 font-light">{event.description}</p>
                     </div>
 
-                    <div className="pt-4 border-t border-[rgba(255,255,255,0.07)] flex flex-wrap gap-x-4 gap-y-1 mt-4 text-[10px] text-[#555550] font-normal">
-                      <span className="flex items-center gap-1"><i className="ti ti-calendar text-[#2D7A22] text-sm" /> {event.date}</span>
-                      <span className="flex items-center gap-1"><i className="ti ti-map-pin text-[#888880] text-sm" /> {event.venue}</span>
+                    <div>
+                      <div className="pt-4 border-t border-[rgba(255,255,255,0.07)] flex flex-wrap gap-x-4 gap-y-1 mt-4 text-[10px] text-[#555550] font-normal mb-3">
+                        <span className="flex items-center gap-1"><i className="ti ti-calendar text-[#2D7A22] text-sm" /> {event.date}</span>
+                        <span className="flex items-center gap-1"><i className="ti ti-map-pin text-[#888880] text-sm" /> {event.venue}</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRegisteringEvent(event);
+                        }}
+                        className="w-full py-2 bg-[#2D7A22] hover:bg-[#3A9C2D] text-white text-xs uppercase tracking-wider font-semibold rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-lg shadow-[#2D7A22]/20"
+                      >
+                        <i className="ti ti-ticket text-sm" /> Register / RSVP
+                      </button>
                     </div>
                   </div>
                 </motion.div>
+
               ))}
             </motion.div>
           ) : (
@@ -570,10 +588,23 @@ const Events = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 sm:mt-8 pt-4 border-t border-[rgba(255,255,255,0.07)] flex gap-2">
+                <div className="mt-6 sm:mt-8 pt-4 border-t border-[rgba(255,255,255,0.07)] flex flex-col sm:flex-row gap-2">
+                  {selectedEvent.status === "upcoming" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const evt = selectedEvent;
+                        setSelectedEvent(null);
+                        setRegisteringEvent(evt);
+                      }}
+                      className="flex-1 py-2.5 rounded-md bg-[#2D7A22] hover:bg-[#3A9C2D] text-white font-medium text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#2D7A22]/20"
+                    >
+                      <i className="ti ti-ticket text-sm" /> Register / RSVP
+                    </button>
+                  )}
                   <button
                     onClick={() => setSelectedEvent(null)}
-                    className="w-full py-2.5 rounded-md bg-[#1A1A17] hover:bg-[#2D7A22] hover:text-[#F0EDE6] border border-[rgba(255,255,255,0.07)] hover:border-transparent text-[#888880] hover:text-white font-medium text-xs transition-all flex items-center justify-center gap-2"
+                    className="py-2.5 px-4 rounded-md bg-[#1A1A17] hover:bg-white/5 border border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white font-medium text-xs transition-all flex items-center justify-center gap-2"
                   >
                     Close Log
                   </button>
@@ -583,6 +614,14 @@ const Events = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* In-App Event RSVP Registration Modal */}
+      <EventRegisterModal
+        event={registeringEvent}
+        isOpen={Boolean(registeringEvent)}
+        onClose={() => setRegisteringEvent(null)}
+      />
+
 
       {/* Lightbox for Gallery Image */}
       <AnimatePresence>

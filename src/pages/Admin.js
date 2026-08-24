@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../components/Toast";
 import { INITIAL_BLOG_POSTS } from "../data/blogData";
 import BlogReaderModal from "../components/BlogReaderModal";
+import AdminLogin from "../components/admin/AdminLogin";
+import AdminSidebar from "../components/admin/AdminSidebar";
+import AdminBannerSection from "../components/admin/AdminBannerSection";
+import AdminBlogsSection from "../components/admin/AdminBlogsSection";
+import AdminEventsSection from "../components/admin/AdminEventsSection";
+import AdminResourcesSection from "../components/admin/AdminResourcesSection";
+import AdminSubscribersSection from "../components/admin/AdminSubscribersSection";
+import AdminMessagesSection from "../components/admin/AdminMessagesSection";
+import NewsletterStudioModal from "../components/admin/NewsletterStudioModal";
 import {
   getBlogs,
   createBlog,
@@ -21,8 +29,16 @@ import {
   adminLogout,
   getAdminMe,
   getSubscribers,
-  resolveAssetUrl,
+  getBanner,
+  updateBanner,
+  broadcastNewsletter,
+  sendTestNewsletter,
+  getNewsletterCampaigns,
+  getContactMessages,
+  markContactMessageRead,
+  deleteContactMessage,
 } from "../components/api";
+
 
 const DEFAULT_POSTS = INITIAL_BLOG_POSTS;
 
@@ -35,10 +51,8 @@ const DEFAULT_EVENTS = [
     category: "Seminar",
     status: "past",
     flier: "https://images.unsplash.com/photo-1591115765373-5aad4e2380ad?auto=format&fit=crop&w=600&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1591115765373-5aad4e2380ad?auto=format&fit=crop&w=600&q=80"
-    ],
-    commentary: "This webinar kicked off our session with a strong turnout of over 150 students eager to learn about Artificial Intelligence. Facilitators walked through machine learning models, dataset curation, and hackathon registration logistics.",
+    gallery: ["https://images.unsplash.com/photo-1591115765373-5aad4e2380ad?auto=format&fit=crop&w=600&q=80"],
+    commentary: "This webinar kicked off our session with a strong turnout of over 150 students eager to learn about Artificial Intelligence.",
   },
   {
     title: "100L Student Orientation",
@@ -48,10 +62,8 @@ const DEFAULT_EVENTS = [
     category: "General",
     status: "past",
     flier: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80"
-    ],
-    commentary: "Held at Edozien Lecture Hall, the orientation welcomed incoming freshmen. HODs Dr. Ezike and Dr. Adeyiga spoke about academic integrity and college regulations, followed by a Q&A session.",
+    gallery: ["https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80"],
+    commentary: "Held at Edozien Lecture Hall, the orientation welcomed incoming freshmen.",
   },
 ];
 
@@ -76,10 +88,71 @@ const DEFAULT_RESOURCES = [
   },
 ];
 
-const DEPARTMENTS = ["Computer Sciences", "Information Technology", "Cyber Security"];
-const LEVELS = ["100 Level", "200 Level", "300 Level", "400 Level"];
+const DEFAULT_NEWSLETTER_TEMPLATES = {
+  event: {
+    template: "event",
+    subject: "🚀 Register Now: NACOS Tech Fest '26 is Coming to Bells!",
+    preheader: "5 days of hackathons, keynote sessions, and tech exhibitions at Bells University.",
+    eyebrow: "TECH FEST 2026",
+    headline: "Build, Innovate & Compete at NACOS Tech Fest 2026",
+    bannerImage: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
+    bodyContent: "We are thrilled to announce that registration for NACOS Tech Fest '26 is officially open!\n\nJoin over 200+ computing students, industry leaders, and tech enthusiasts across 5 action-packed days of coding challenges, design sprints, and hardware demos. Whether you are in 100 level or final year, there is a track built just for you.\n\nSecure your spot today and get ready to represent your department.",
+    highlights: [
+      "📅 Date: July 12–16, 2026",
+      "📍 Venue: Main Auditorium & CIS Labs",
+      "🏆 Prizes: Over ₦500,000 in hackathon grants & mentorship",
+      "🎯 Tracks: Software Engineering, AI/Data, UI/UX, Cyber Security"
+    ],
+    ctaText: "Register for Tech Fest →",
+    ctaUrl: "https://nacos-bells.vercel.app/events"
+  },
+  blog: {
+    template: "blog",
+    subject: "📖 New Story: 5 Tech Skills Every Computing Student Must Master",
+    preheader: "Fresh insights and career advice from the NACOS Editorial Board.",
+    eyebrow: "EDITORIAL DIGEST",
+    headline: "5 In-Demand Tech Skills to Boost Your Career in 2026",
+    bannerImage: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
+    bodyContent: "The tech landscape is evolving at lightning speed. To help Bells computing students stay ahead of the curve, we've broken down the top five high-growth skills employers are looking for right now.\n\nFrom cloud architecture to practical AI workflow integration, check out this comprehensive breakdown written exclusively for our student community.",
+    highlights: [
+      "💡 Cloud Infrastructure & Containerization (Docker, AWS)",
+      "🔒 Secure Coding & API Architecture",
+      "⚡ AI Tooling & Data Engineering Foundations",
+      "🤝 Open Source Contribution Pathways"
+    ],
+    ctaText: "Read Full Article →",
+    ctaUrl: "https://nacos-bells.vercel.app/blog"
+  },
+  general: {
+    template: "general",
+    subject: "📢 Important Update: NACOS Chapter Academic Resources & Timetable",
+    preheader: "Official communique from the NACOS Executive Council.",
+    eyebrow: "EXECUTIVE COMMUNIQUE",
+    headline: "Mid-Semester Updates & Course Vault Expansion",
+    bannerImage: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80",
+    bodyContent: "Dear Computing Students,\n\nThe NACOS Executive Council wishes to share important updates regarding academic support and semester activities.\n\nOur Course Vault has just been refreshed with past examination questions and curated study materials for 100L through 400L students across Computer Science, IT, and Cyber Security departments.\n\nPlease review the study repository and feel free to reach out to your departmental representatives for assistance.",
+    highlights: [
+      "📚 Updated 100L–400L Past Exam Collections available in Vault",
+      "💻 Weekly Peer Tutoring sessions running at CIS Lab 2",
+      "🤝 Executive Office Hours: Mondays & Wednesdays (2 PM – 4 PM)"
+    ],
+    ctaText: "Access Course Vault →",
+    ctaUrl: "https://nacos-bells.vercel.app/resources"
+  },
+  custom: {
+    template: "custom",
+    subject: "",
+    preheader: "",
+    eyebrow: "ANNOUNCEMENT",
+    headline: "",
+    bannerImage: "",
+    bodyContent: "",
+    highlights: [],
+    ctaText: "Learn More →",
+    ctaUrl: "https://nacos-bells.vercel.app"
+  }
+};
 
-// Formatting utility for file sizes
 const formatFileSize = (bytes) => {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -100,7 +173,7 @@ export default function Admin() {
   const [loginSubmitting, setLoginSubmitting] = useState(false);
 
   // Section states
-  const [activeSection, setActiveSection] = useState("blogs");
+  const [activeSection, setActiveSection] = useState("blogs"); // "blogs" | "events" | "resources" | "banner" | "subscribers" | "messages"
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,7 +183,10 @@ export default function Admin() {
   const [events, setEvents] = useState([]);
   const [resources, setResources] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [previewPost, setPreviewPost] = useState(null);
+
 
   // Raw file references for uploads
   const [blogFile, setBlogFile] = useState(null);
@@ -154,6 +230,26 @@ export default function Admin() {
     filePath: "",
   });
 
+  // Banner Settings State
+  const [bannerForm, setBannerForm] = useState({
+    enabled: true,
+    badge: "NACOS Tech Fest '26",
+    text: "— July 12–16, Main Auditorium.",
+    linkText: "Register Now →",
+    linkUrl: "/events",
+    accentColor: "green",
+  });
+  const [bannerSaving, setBannerSaving] = useState(false);
+
+  // Newsletter Promotional Studio State
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState("event");
+  const [newsletterForm, setNewsletterForm] = useState({ ...DEFAULT_NEWSLETTER_TEMPLATES.event });
+  const [newHighlightInput, setNewHighlightInput] = useState("");
+  const [testEmailAddress, setTestEmailAddress] = useState("");
+  const [testSubmitting, setTestSubmitting] = useState(false);
+  const [broadcastSubmitting, setBroadcastSubmitting] = useState(false);
+
   // Check admin session on mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -173,13 +269,14 @@ export default function Admin() {
     checkAuth();
   }, []);
 
-  // Fetch data
+  // Fetch all data
   const loadAllData = async () => {
     try {
-      const [fetchedBlogs, fetchedEvents, fetchedResources] = await Promise.all([
+      const [fetchedBlogs, fetchedEvents, fetchedResources, fetchedBanner] = await Promise.all([
         getBlogs().catch(() => null),
         getEvents().catch(() => null),
         getResources().catch(() => null),
+        getBanner().catch(() => null),
       ]);
 
       if (fetchedBlogs && Array.isArray(fetchedBlogs)) {
@@ -206,17 +303,26 @@ export default function Admin() {
         setResources(local ? JSON.parse(local) : DEFAULT_RESOURCES);
       }
 
-      // Load subscribers if authenticated
+      if (fetchedBanner) {
+        setBannerForm(fetchedBanner);
+      }
+
+      // Load subscribers, campaigns, and contact messages if authenticated
       try {
-        const fetchedSubscribers = await getSubscribers();
-        if (Array.isArray(fetchedSubscribers)) {
-          setSubscribers(fetchedSubscribers);
-        }
+        const [fetchedSubscribers, fetchedCampaigns, fetchedMessages] = await Promise.all([
+          getSubscribers().catch(() => []),
+          getNewsletterCampaigns().catch(() => []),
+          getContactMessages().catch(() => []),
+        ]);
+        if (Array.isArray(fetchedSubscribers)) setSubscribers(fetchedSubscribers);
+        if (Array.isArray(fetchedCampaigns)) setCampaigns(fetchedCampaigns);
+        if (Array.isArray(fetchedMessages)) setMessages(fetchedMessages);
       } catch (e) {}
     } catch (err) {
       console.warn("Using offline localStorage fallback:", err);
     }
   };
+
 
   useEffect(() => {
     loadAllData();
@@ -293,8 +399,7 @@ export default function Admin() {
     setShowForm(false);
   };
 
-  // ─── File selection handlers ───────────────────────────────────────────────
-
+  // File selection handlers
   const handleBlogImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -329,21 +434,32 @@ export default function Admin() {
     showToast("PDF document attached.", "info");
   };
 
-  // ─── Save Blog ─────────────────────────────────────────────────────────────
+  const handleNewsletterBannerChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const uploadRes = await uploadImage(file);
+      if (uploadRes && uploadRes.url) {
+        setNewsletterForm((prev) => ({ ...prev, bannerImage: uploadRes.url }));
+        showToast("Promotional banner uploaded successfully!", "success");
+      }
+    } catch (err) {
+      const objectUrl = URL.createObjectURL(file);
+      setNewsletterForm((prev) => ({ ...prev, bannerImage: objectUrl }));
+      showToast("Banner preview selected.", "info");
+    }
+  };
 
+  // Save Blog
   const handleSaveBlog = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       let finalImageUrl = blogForm.image;
-
-      // If a file was selected, upload it to NestJS backend
       if (blogFile) {
         try {
           const uploadRes = await uploadImage(blogFile);
-          if (uploadRes && uploadRes.url) {
-            finalImageUrl = uploadRes.url;
-          }
+          if (uploadRes && uploadRes.url) finalImageUrl = uploadRes.url;
         } catch (uploadErr) {
           console.warn("Image upload endpoint failed, proceeding with original URL:", uploadErr);
         }
@@ -384,20 +500,16 @@ export default function Admin() {
     }
   };
 
-  // ─── Save Event ────────────────────────────────────────────────────────────
-
+  // Save Event
   const handleSaveEvent = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       let finalFlierUrl = eventForm.flier || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80";
-
       if (eventFile) {
         try {
           const uploadRes = await uploadImage(eventFile);
-          if (uploadRes && uploadRes.url) {
-            finalFlierUrl = uploadRes.url;
-          }
+          if (uploadRes && uploadRes.url) finalFlierUrl = uploadRes.url;
         } catch (uploadErr) {
           console.warn("Flier upload failed, keeping URL:", uploadErr);
         }
@@ -433,8 +545,7 @@ export default function Admin() {
     }
   };
 
-  // ─── Save Resource ─────────────────────────────────────────────────────────
-
+  // Save Resource
   const handleSaveResource = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -448,9 +559,7 @@ export default function Admin() {
       formData.append("year", resourceForm.year);
       formData.append("size", resourceForm.size || "1.0 MB");
 
-      if (resourceFile) {
-        formData.append("file", resourceFile);
-      }
+      if (resourceFile) formData.append("file", resourceFile);
 
       if (editingItem && editingItem.id) {
         await updateResource(editingItem.id, formData);
@@ -470,8 +579,22 @@ export default function Admin() {
     }
   };
 
-  // ─── Delete Handlers ───────────────────────────────────────────────────────
+  // Save Banner Settings
+  const handleSaveBanner = async (e) => {
+    e.preventDefault();
+    setBannerSaving(true);
+    try {
+      const res = await updateBanner(bannerForm);
+      setBannerForm(res);
+      showToast("Site banner settings updated & published!", "success");
+    } catch (err) {
+      showToast(`Error: ${err.message || "Failed to update banner"}`, "error");
+    } finally {
+      setBannerSaving(false);
+    }
+  };
 
+  // Delete Handlers
   const handleDelete = async (item, index) => {
     if (!window.confirm("Are you sure you want to permanently delete this record?")) return;
 
@@ -493,8 +616,7 @@ export default function Admin() {
     }
   };
 
-  // ─── Edit Triggers ────────────────────────────────────────────────────────
-
+  // Edit Triggers
   const startEdit = (item) => {
     setEditingItem(item);
     setShowForm(true);
@@ -510,6 +632,132 @@ export default function Admin() {
     }
   };
 
+  // Newsletter Broadcast & Template Helpers
+  const handleSelectTemplate = (templateKey) => {
+    setSelectedTemplateKey(templateKey);
+    const selected = DEFAULT_NEWSLETTER_TEMPLATES[templateKey];
+    if (selected) {
+      setNewsletterForm({ ...selected });
+    }
+    showToast(`Loaded ${templateKey.toUpperCase()} promotional template`, "info");
+  };
+
+  const handleAddHighlight = () => {
+    if (!newHighlightInput.trim()) return;
+    setNewsletterForm((prev) => ({
+      ...prev,
+      highlights: [...(prev.highlights || []), newHighlightInput.trim()],
+    }));
+    setNewHighlightInput("");
+  };
+
+  const handleRemoveHighlight = (idx) => {
+    setNewsletterForm((prev) => ({
+      ...prev,
+      highlights: (prev.highlights || []).filter((_, i) => i !== idx),
+    }));
+  };
+
+  const handleSendTestEmail = async (e) => {
+    e.preventDefault();
+    if (!testEmailAddress.trim()) {
+      showToast("Please enter an email address for testing", "error");
+      return;
+    }
+    setTestSubmitting(true);
+    try {
+      await sendTestNewsletter({
+        ...newsletterForm,
+        testEmail: testEmailAddress.trim(),
+      });
+      showToast(`Test promotional email dispatched to ${testEmailAddress}!`, "success");
+    } catch (err) {
+      showToast(`Test failed: ${err.message}`, "error");
+    } finally {
+      setTestSubmitting(false);
+    }
+  };
+
+  const handleBroadcastNewsletter = async (e) => {
+    e.preventDefault();
+    if (subscribers.length === 0) {
+      if (!window.confirm("There are currently 0 registered subscribers in the database. Proceed to save campaign draft?")) {
+        return;
+      }
+    } else {
+      if (!window.confirm(`Are you sure you want to broadcast this promotional email to ALL ${subscribers.length} subscriber(s)?`)) {
+        return;
+      }
+    }
+
+    setBroadcastSubmitting(true);
+    try {
+      const res = await broadcastNewsletter(newsletterForm);
+      showToast(res.message || "Promotional newsletter broadcasted successfully!", "success");
+      setShowBroadcastModal(false);
+      loadAllData();
+    } catch (err) {
+      showToast(`Broadcast failed: ${err.message}`, "error");
+    } finally {
+      setBroadcastSubmitting(false);
+    }
+  };
+
+  const handleCopyAllEmails = () => {
+    if (subscribers.length === 0) {
+      showToast("No subscriber emails to copy", "info");
+      return;
+    }
+    const emailList = subscribers.map((s) => s.email).join(", ");
+    navigator.clipboard.writeText(emailList);
+    showToast(`Copied ${subscribers.length} email(s) to clipboard (BCC ready)!`, "success");
+  };
+
+  const handleExportCSV = () => {
+    if (subscribers.length === 0) {
+      showToast("No subscriber data to export", "info");
+      return;
+    }
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      "ID,Email,Subscribed Date\n" +
+      subscribers.map((s, idx) => `${s.id || idx + 1},"${s.email}","${s.createdAt || ""}"`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `nacos_subscribers_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Subscribers exported as CSV file!", "success");
+  };
+
+  // Contact Inquiries Handlers
+  const handleMarkRead = async (id, status = "read") => {
+    try {
+      await markContactMessageRead(id, status);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, status } : m))
+      );
+      showToast(`Marked inquiry as ${status}`, "info");
+    } catch (err) {
+      showToast(`Failed to update message: ${err.message}`, "error");
+    }
+  };
+
+  const handleDeleteMessage = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this inquiry message?")) return;
+    try {
+      await deleteContactMessage(id);
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+      showToast("Inquiry message deleted", "success");
+    } catch (err) {
+      showToast(`Delete failed: ${err.message}`, "error");
+    }
+  };
+
+  const unreadCount = messages.filter((m) => m.status === "unread").length;
+
   if (authLoading) {
     return (
       <div className="pt-24 min-h-screen bg-[#0A0A08] flex items-center justify-center text-[#888880]">
@@ -521,93 +769,18 @@ export default function Admin() {
     );
   }
 
-  // ─── Admin Login Form (when unauthenticated) ────────────────────────────────
-
+  // Admin Login Screen
   if (!isAdminAuthenticated) {
     return (
-      <div className="pt-20 pb-12 px-4 sm:px-6 bg-[#0A0A08] min-h-screen flex items-center justify-center text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
-        <motion.div
-          className="bg-[#111110] border border-[rgba(255,255,255,0.07)] p-6 sm:p-8 rounded-xl max-w-sm w-full relative overflow-hidden shadow-2xl"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="w-12 h-12 rounded-xl bg-[#2D7A22]/10 border border-[#2D7A22]/30 flex items-center justify-center mx-auto mb-4 text-[#2D7A22] text-2xl">
-            <i className="ti ti-shield-lock" />
-          </div>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[#888880] mb-1 block text-center font-normal">
-            Control Center
-          </span>
-          <h2 className="text-xl font-display font-medium text-white text-center mb-2">
-            Administrator Access
-          </h2>
-          <p className="text-xs text-[#888880] text-center mb-6 font-light">
-            Sign in with administrative credentials to manage blog stories, events, and course vaults.
-          </p>
-
-          {loginError && (
-            <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-md p-3 text-center mb-4">
-              {loginError}
-            </div>
-          )}
-
-          <form className="space-y-4" onSubmit={handleLogin}>
-            <div>
-              <label className="block text-[10px] font-normal text-[#888880] mb-1.5 uppercase tracking-wider">
-                Admin Username
-              </label>
-              <input
-                type="text"
-                required
-                value={loginCreds.username}
-                onChange={(e) => setLoginCreds({ ...loginCreds, username: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] text-xs placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]"
-                placeholder="e.g. admin"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-normal text-[#888880] mb-1.5 uppercase tracking-wider">
-                Admin Password
-              </label>
-              <input
-                type="password"
-                required
-                value={loginCreds.password}
-                onChange={(e) => setLoginCreds({ ...loginCreds, password: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-md bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-[#F0EDE6] text-xs placeholder-[#555550] focus:outline-none focus:border-[#2D7A22]"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div className="p-2.5 bg-white/[0.02] border border-white/[0.05] rounded text-[10px] text-[#888880]">
-              <span className="text-[#2D7A22] font-medium">Default Dev Credentials:</span> admin / nacos2025
-            </div>
-
-            <button
-              type="submit"
-              disabled={loginSubmitting}
-              className="w-full bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] py-2.5 rounded-md text-xs font-medium uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
-            >
-              {loginSubmitting ? (
-                <>
-                  <i className="ti ti-loader-2 animate-spin text-sm" />
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <i className="ti ti-lock-open text-sm" />
-                  <span>Enter Dashboard</span>
-                </>
-              )}
-            </button>
-          </form>
-        </motion.div>
-      </div>
+      <AdminLogin
+        loginCreds={loginCreds}
+        setLoginCreds={setLoginCreds}
+        handleLogin={handleLogin}
+        loginError={loginError}
+        loginSubmitting={loginSubmitting}
+      />
     );
   }
-
-  // ─── Main Admin Dashboard ──────────────────────────────────────────────────
 
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
@@ -618,76 +791,42 @@ export default function Admin() {
         onClose={() => setPreviewPost(null)}
       />
 
+      {/* Promotional Newsletter Broadcast Studio Modal */}
+      <NewsletterStudioModal
+        isOpen={showBroadcastModal}
+        onClose={() => setShowBroadcastModal(false)}
+        newsletterForm={newsletterForm}
+        setNewsletterForm={setNewsletterForm}
+        selectedTemplateKey={selectedTemplateKey}
+        handleSelectTemplate={handleSelectTemplate}
+        handleNewsletterBannerChange={handleNewsletterBannerChange}
+        handleAddHighlight={handleAddHighlight}
+        handleRemoveHighlight={handleRemoveHighlight}
+        newHighlightInput={newHighlightInput}
+        setNewHighlightInput={setNewHighlightInput}
+        handleSendTestEmail={handleSendTestEmail}
+        handleBroadcastNewsletter={handleBroadcastNewsletter}
+        testEmailAddress={testEmailAddress}
+        setTestEmailAddress={setTestEmailAddress}
+        testSubmitting={testSubmitting}
+        broadcastSubmitting={broadcastSubmitting}
+        subscriberCount={subscribers.length}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
+          {/* Sidebar */}
+          <AdminSidebar
+            adminUser={adminUser}
+            handleLogout={handleLogout}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            resetForms={resetForms}
+            unreadMessagesCount={unreadCount}
+          />
 
-          {/* ====== SIDEBAR ====== */}
-          <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
-            <div className="p-4 border border-[rgba(255,255,255,0.07)] bg-[#111110] rounded-xl mb-2 sm:mb-4 text-center relative overflow-hidden">
-              <div className="w-10 h-10 rounded-full bg-[#2D7A22]/15 text-[#2D7A22] flex items-center justify-center mx-auto mb-2 font-medium text-sm">
-                {adminUser?.username?.[0]?.toUpperCase() || "A"}
-              </div>
-              <span className="text-[10px] uppercase tracking-widest text-[#888880] block mb-0.5">Logged in as</span>
-              <h2 className="text-white font-display font-medium text-sm">{adminUser?.username || "Admin"}</h2>
-              <button
-                onClick={handleLogout}
-                className="mt-3 text-[10px] text-red-400 hover:text-red-300 transition-colors flex items-center justify-center gap-1 mx-auto"
-              >
-                <i className="ti ti-logout text-xs" /> Sign Out
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-1 gap-2">
-              <button
-                onClick={() => { setActiveSection("blogs"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "blogs"
-                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
-              >
-                <i className="ti ti-news text-base" />
-                Manage Blogs
-              </button>
-              <button
-                onClick={() => { setActiveSection("events"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "events"
-                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
-              >
-                <i className="ti ti-calendar-event text-base" />
-                Manage Events
-              </button>
-              <button
-                onClick={() => { setActiveSection("resources"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "resources"
-                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
-              >
-                <i className="ti ti-books text-base" />
-                Manage Resources
-              </button>
-              <button
-                onClick={() => { setActiveSection("subscribers"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "subscribers"
-                    ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
-                    : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
-              >
-                <i className="ti ti-mail text-base" />
-                Subscribers
-              </button>
-            </div>
-          </aside>
-
-          {/* ====== WORKSPACE ====== */}
+          {/* Workspace Area */}
           <main className="flex-1 bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-xl p-5 sm:p-8">
-
             {/* Header Panel */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-[rgba(255,255,255,0.07)]">
               <div>
@@ -695,17 +834,21 @@ export default function Admin() {
                   {activeSection === "blogs" && "Blog Stories"}
                   {activeSection === "events" && "Event Records"}
                   {activeSection === "resources" && "Vault Resources"}
-                  {activeSection === "subscribers" && "Newsletter Subscribers"}
+                  {activeSection === "banner" && "Site Announcement Banner"}
+                  {activeSection === "subscribers" && "Newsletter & Broadcast Studio"}
+                  {activeSection === "messages" && "Contact Inquiries & Inbox"}
                 </h1>
                 <p className="text-xs text-[#888880] mt-1 font-light">
                   {activeSection === "blogs" && `Showing ${blogs.length} stories synced with the NestJS backend.`}
                   {activeSection === "events" && `Showing ${events.length} events logged in the database.`}
                   {activeSection === "resources" && `Showing ${resources.length} past questions stored in the archive.`}
-                  {activeSection === "subscribers" && `Showing ${subscribers.length} newsletter subscribers registered.`}
+                  {activeSection === "banner" && "Customize, theme, and toggle the announcement banner shown on top of the website."}
+                  {activeSection === "subscribers" && `Manage ${subscribers.length} student subscribers and broadcast promotional emails.`}
+                  {activeSection === "messages" && `Review ${messages.length} student inquiries (${unreadCount} unread).`}
                 </p>
               </div>
 
-              {!showForm && activeSection !== "subscribers" && (
+              {!showForm && !["subscribers", "banner", "messages"].includes(activeSection) && (
                 <button
                   onClick={() => setShowForm(true)}
                   className="px-5 py-2.5 bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-md transition-colors flex items-center gap-2"
@@ -716,537 +859,113 @@ export default function Admin() {
                   {activeSection === "resources" && "Add Resource"}
                 </button>
               )}
-            </div>
 
-            {/* Slide Down Form Container */}
-            <AnimatePresence>
-              {showForm && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden mb-8 border-b border-[rgba(255,255,255,0.07)] pb-8"
-                >
-                  <h3 className="text-sm uppercase tracking-wider text-[#888880] mb-4 font-normal">
-                    {editingItem ? "Edit Record Details" : "Create New Record"}
-                  </h3>
-
-                  {/* ─── BLOG FORM ─── */}
-                  {activeSection === "blogs" && (
-                    <form onSubmit={handleSaveBlog} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Post Title</label>
-                        <input
-                          type="text"
-                          required
-                          value={blogForm.title}
-                          onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
-                          placeholder="e.g. Highlights from Web Dev Bootcamp 2025"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Publication Date</label>
-                        <input
-                          type="text"
-                          required
-                          value={blogForm.date}
-                          onChange={(e) => setBlogForm({ ...blogForm, date: e.target.value })}
-                          placeholder="e.g. June 15, 2026"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Category</label>
-                        <select
-                          value={blogForm.category}
-                          onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        >
-                          {["News", "Events", "Tech Tips", "Student Life", "Tutorials"].map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Author Name</label>
-                        <input
-                          type="text"
-                          required
-                          value={blogForm.author}
-                          onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
-                          placeholder="e.g. PRO Team / Mariam Yussuf"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Author Role / Directorate</label>
-                        <input
-                          type="text"
-                          value={blogForm.authorRole || ""}
-                          onChange={(e) => setBlogForm({ ...blogForm, authorRole: e.target.value })}
-                          placeholder="e.g. Technical Directorate"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Est. Read Time</label>
-                        <input
-                          type="text"
-                          required
-                          value={blogForm.readTime}
-                          onChange={(e) => setBlogForm({ ...blogForm, readTime: e.target.value })}
-                          placeholder="e.g. 4 min read"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Tags (comma separated)</label>
-                        <input
-                          type="text"
-                          value={blogForm.tagsInput || ""}
-                          onChange={(e) => setBlogForm({ ...blogForm, tagsInput: e.target.value })}
-                          placeholder="e.g. React, Bootcamp, Hackathon"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Excerpt / Summary</label>
-                        <textarea
-                          required
-                          value={blogForm.excerpt}
-                          onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-                          placeholder="Provide a compelling 2-3 sentence overview..."
-                          rows={2}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22] resize-none"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <div className="flex justify-between items-center mb-1.5">
-                          <label className="block text-[10px] uppercase text-[#888880] tracking-wider">Full Article Body (Markdown)</label>
-                          <span className="text-[10px] text-[#555550]">Tip: Use ### for headers, &gt; for quotes</span>
-                        </div>
-                        <textarea
-                          value={blogForm.content || ""}
-                          onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
-                          placeholder="Write the full markdown content of the story..."
-                          rows={8}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22] font-mono text-xs leading-relaxed"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Cover Image (Upload or Web URL)</label>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#1A1A17] p-4 rounded border border-[rgba(255,255,255,0.07)]">
-                          {blogForm.image ? (
-                            <div className="relative w-28 h-20 rounded border border-[rgba(255,255,255,0.07)] overflow-hidden">
-                              <img src={resolveAssetUrl(blogForm.image)} alt="Preview" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => { setBlogForm({ ...blogForm, image: "" }); setBlogFile(null); }}
-                                className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-[10px]"
-                                title="Remove Image"
-                              >
-                                <i className="ti ti-x" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col gap-1.5 w-full">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleBlogImageChange}
-                                className="text-xs text-[#888880] file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#2D7A22] file:text-[#F0EDE6] hover:file:bg-[#3A9C2D] file:cursor-pointer"
-                              />
-                              <span className="text-[10px] text-[#555550]">Upload image file (JPG, PNG, WebP) or paste an external image URL:</span>
-                              <input
-                                type="text"
-                                value={blogForm.image || ""}
-                                onChange={(e) => setBlogForm({ ...blogForm, image: e.target.value })}
-                                placeholder="https://images.unsplash.com/..."
-                                className="w-full px-3 py-1.5 bg-[#111110] border border-[rgba(255,255,255,0.07)] text-white text-xs rounded focus:outline-none focus:border-[#2D7A22] mt-1"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="sm:col-span-2 flex gap-3 mt-2">
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="px-5 py-2.5 bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-md flex items-center gap-2"
-                        >
-                          {isSubmitting ? <i className="ti ti-loader-2 animate-spin text-sm" /> : null}
-                          {editingItem ? "Save Changes" : "Publish Story"}
-                        </button>
-                        <button type="button" onClick={resetForms} className="px-5 py-2.5 bg-[#1A1A17] hover:bg-white/[0.03] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] text-xs uppercase tracking-wider font-medium rounded-md">
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {/* ─── EVENT FORM ─── */}
-                  {activeSection === "events" && (
-                    <form onSubmit={handleSaveEvent} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Event Title</label>
-                        <input
-                          type="text"
-                          required
-                          value={eventForm.title}
-                          onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                          placeholder="e.g. NACOS Hackathon Demo Day"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Event Date</label>
-                        <input
-                          type="text"
-                          required
-                          value={eventForm.date}
-                          onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
-                          placeholder="e.g. July 14, 2026"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Venue</label>
-                        <input
-                          type="text"
-                          required
-                          value={eventForm.venue}
-                          onChange={(e) => setEventForm({ ...eventForm, venue: e.target.value })}
-                          placeholder="e.g. CIS Lecture Theatre 1"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Category</label>
-                        <select
-                          value={eventForm.category}
-                          onChange={(e) => setEventForm({ ...eventForm, category: e.target.value })}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        >
-                          {["Workshop", "Competition", "Social", "Seminar", "General"].map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Status</label>
-                        <select
-                          value={eventForm.status}
-                          onChange={(e) => setEventForm({ ...eventForm, status: e.target.value })}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        >
-                          <option value="upcoming">Upcoming</option>
-                          <option value="past">Past / Archive</option>
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Event Flier</label>
-                        <div className="flex flex-col sm:flex-row gap-4 items-stretch bg-[#1A1A17] p-4 rounded border border-[rgba(255,255,255,0.07)]">
-                          {eventForm.flier ? (
-                            <div className="relative w-24 h-24 rounded border border-[rgba(255,255,255,0.07)] overflow-hidden flex-shrink-0">
-                              <img src={resolveAssetUrl(eventForm.flier)} alt="Preview" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => { setEventForm({ ...eventForm, flier: "" }); setEventFile(null); }}
-                                className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-[10px]"
-                                title="Remove Flier"
-                              >
-                                <i className="ti ti-x" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex-1 flex flex-col justify-center">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleEventFlierChange}
-                                className="text-xs text-[#888880] file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#2D7A22] file:text-[#F0EDE6] hover:file:bg-[#3A9C2D] file:cursor-pointer mb-2"
-                              />
-                              <span className="text-[10px] text-[#555550]">Upload an image flier or paste an image link:</span>
-                              <input
-                                type="text"
-                                value={eventForm.flier || ""}
-                                onChange={(e) => setEventForm({ ...eventForm, flier: e.target.value })}
-                                placeholder="https://images.unsplash.com/..."
-                                className="w-full px-4 py-2 bg-[#111110] border border-[rgba(255,255,255,0.07)] text-white text-xs rounded-md focus:outline-none focus:border-[#2D7A22] mt-1"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Event Brief Description</label>
-                        <textarea
-                          required
-                          value={eventForm.description}
-                          onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
-                          placeholder="Write a brief overview of what this event is..."
-                          rows={2}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22] resize-none"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Recap Commentary (Past Events)</label>
-                        <textarea
-                          value={eventForm.commentary}
-                          onChange={(e) => setEventForm({ ...eventForm, commentary: e.target.value })}
-                          placeholder="Summarize the recap and highlights of the event..."
-                          rows={3}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22] resize-none"
-                        />
-                      </div>
-                      <div className="sm:col-span-2 flex gap-3 mt-2">
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="px-5 py-2.5 bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-md flex items-center gap-2"
-                        >
-                          {isSubmitting ? <i className="ti ti-loader-2 animate-spin text-sm" /> : null}
-                          {editingItem ? "Save Changes" : "Log Event"}
-                        </button>
-                        <button type="button" onClick={resetForms} className="px-5 py-2.5 bg-[#1A1A17] hover:bg-white/[0.03] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] text-xs uppercase tracking-wider font-medium rounded-md">
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {/* ─── RESOURCE FORM ─── */}
-                  {activeSection === "resources" && (
-                    <form onSubmit={handleSaveResource} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Course Code</label>
-                        <input
-                          type="text"
-                          required
-                          value={resourceForm.code}
-                          onChange={(e) => setResourceForm({ ...resourceForm, code: e.target.value })}
-                          placeholder="e.g. CSC 311"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Course Title</label>
-                        <input
-                          type="text"
-                          required
-                          value={resourceForm.title}
-                          onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })}
-                          placeholder="e.g. Object-Oriented Programming"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Department</label>
-                        <select
-                          value={resourceForm.dept}
-                          onChange={(e) => setResourceForm({ ...resourceForm, dept: e.target.value })}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        >
-                          {DEPARTMENTS.map((dept) => (
-                            <option key={dept} value={dept}>{dept}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Level</label>
-                        <select
-                          value={resourceForm.level}
-                          onChange={(e) => setResourceForm({ ...resourceForm, level: e.target.value })}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        >
-                          {LEVELS.map((lvl) => (
-                            <option key={lvl} value={lvl}>{lvl}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Semester</label>
-                        <select
-                          value={resourceForm.semester}
-                          onChange={(e) => setResourceForm({ ...resourceForm, semester: e.target.value })}
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        >
-                          <option value="1st Semester">1st Semester</option>
-                          <option value="2nd Semester">2nd Semester</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Academic Year</label>
-                        <input
-                          type="text"
-                          required
-                          value={resourceForm.year}
-                          onChange={(e) => setResourceForm({ ...resourceForm, year: e.target.value })}
-                          placeholder="e.g. 2025/2026"
-                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">PDF File Resource (Max 20MB)</label>
-                        <div className="flex items-center gap-4 bg-[#1A1A17] p-4 rounded border border-[rgba(255,255,255,0.07)]">
-                          {resourceFile || resourceForm.filePath ? (
-                            <div className="flex items-center gap-3 bg-[#111110] px-4 py-2.5 rounded border border-[#2D7A22]/30 w-full justify-between">
-                              <div className="flex items-center gap-2">
-                                <i className="ti ti-file-type-pdf text-[#2D7A22] text-xl" />
-                                <div>
-                                  <div className="text-xs text-white font-medium">
-                                    {resourceFile ? resourceFile.name : "Attached Document"}
-                                  </div>
-                                  <div className="text-[10px] text-[#888880]">File Size: {resourceForm.size}</div>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => { setResourceFile(null); setResourceForm({ ...resourceForm, filePath: "" }); }}
-                                className="bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded p-1.5 text-xs transition-colors"
-                                title="Remove PDF"
-                              >
-                                <i className="ti ti-trash" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col gap-1.5 w-full">
-                              <input
-                                type="file"
-                                accept=".pdf"
-                                onChange={handleResourceFileChange}
-                                className="text-xs text-[#888880] file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#2D7A22] file:text-[#F0EDE6] hover:file:bg-[#3A9C2D] file:cursor-pointer"
-                              />
-                              <span className="text-[10px] text-[#555550]">Select a PDF document (uploaded securely to backend server).</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="sm:col-span-2 flex gap-3 mt-2">
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="px-5 py-2.5 bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-md flex items-center gap-2"
-                        >
-                          {isSubmitting ? <i className="ti ti-loader-2 animate-spin text-sm" /> : null}
-                          {editingItem ? "Save Changes" : "Upload Resource"}
-                        </button>
-                        <button type="button" onClick={resetForms} className="px-5 py-2.5 bg-[#1A1A17] hover:bg-white/[0.03] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] text-xs uppercase tracking-wider font-medium rounded-md">
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ====== RECORD ROWS LIST ====== */}
-            <div className="space-y-4">
-
-              {/* Blog Records List */}
-              {activeSection === "blogs" && (
-                blogs.length === 0 ? (
-                  <p className="text-[#888880] text-xs italic font-light text-center py-8">No stories published yet.</p>
-                ) : (
-                  blogs.map((post, idx) => (
-                    <div key={post.id || idx} className="flex justify-between items-center bg-[#1A1A17]/40 border border-[rgba(255,255,255,0.05)] rounded-lg p-4 hover:border-[rgba(255,255,255,0.1)] transition-colors">
-                      <div className="max-w-[70%]">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[9px] uppercase tracking-wider text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2 py-0.5 rounded font-medium">{post.category}</span>
-                          <span className="text-[10px] text-[#888880] font-light">{post.readTime}</span>
-                        </div>
-                        <h4 className="text-white font-medium text-sm mt-1 line-clamp-1">{post.title}</h4>
-                        <p className="text-[10px] text-[#888880] mt-1 font-light">By {post.author} {post.authorRole ? `(${post.authorRole})` : ""} · {post.date}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => setPreviewPost(post)} className="p-2 border border-[#2D7A22]/30 hover:border-[#2D7A22] text-[#2D7A22] hover:bg-[#2D7A22]/10 rounded transition-colors text-xs" title="Preview Article"><i className="ti ti-eye" /></button>
-                        <button onClick={() => startEdit(post)} className="p-2 border border-[rgba(255,255,255,0.07)] hover:border-white/20 text-[#888880] hover:text-white rounded transition-colors text-xs" title="Edit"><i className="ti ti-edit" /></button>
-                        <button onClick={() => handleDelete(post, idx)} className="p-2 border border-red-500/10 hover:border-red-500/30 text-red-500/70 hover:text-red-400 rounded transition-colors text-xs" title="Delete"><i className="ti ti-trash" /></button>
-                      </div>
-                    </div>
-                  ))
-                )
-              )}
-
-              {/* Event Records List */}
-              {activeSection === "events" && (
-                events.length === 0 ? (
-                  <p className="text-[#888880] text-xs italic font-light text-center py-8">No events logged yet.</p>
-                ) : (
-                  events.map((evt, idx) => (
-                    <div key={evt.id || idx} className="flex justify-between items-center bg-[#1A1A17]/40 border border-[rgba(255,255,255,0.05)] rounded-lg p-4 hover:border-[rgba(255,255,255,0.1)] transition-colors">
-                      <div className="max-w-[70%]">
-                        <div className="flex gap-2 items-center">
-                          <span className="text-[9px] uppercase tracking-wider text-[#888880] bg-[#111110] border border-[rgba(255,255,255,0.07)] px-2 py-0.5 rounded">{evt.category}</span>
-                          <span className={`text-[9px] uppercase tracking-wider px-2 py-0.5 rounded ${evt.status === "upcoming" ? "bg-[#2D7A22]/15 text-[#2D7A22]" : "bg-white/5 text-[#888880]"}`}>{evt.status}</span>
-                        </div>
-                        <h4 className="text-white font-medium text-sm mt-2">{evt.title}</h4>
-                        <p className="text-[10px] text-[#888880] mt-1 font-light">At {evt.venue} · {evt.date}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => startEdit(evt)} className="p-2 border border-[rgba(255,255,255,0.07)] hover:border-white/20 text-[#888880] hover:text-white rounded transition-colors text-xs" title="Edit"><i className="ti ti-edit" /></button>
-                        <button onClick={() => handleDelete(evt, idx)} className="p-2 border border-red-500/10 hover:border-red-500/30 text-red-500/70 hover:text-red-400 rounded transition-colors text-xs" title="Delete"><i className="ti ti-trash" /></button>
-                      </div>
-                    </div>
-                  ))
-                )
-              )}
-
-              {/* Resource Records List */}
-              {activeSection === "resources" && (
-                resources.length === 0 ? (
-                  <p className="text-[#888880] text-xs italic font-light text-center py-8">No resource files uploaded yet.</p>
-                ) : (
-                  resources.map((res, idx) => (
-                    <div key={res.id || idx} className="flex justify-between items-center bg-[#1A1A17]/40 border border-[rgba(255,255,255,0.05)] rounded-lg p-4 hover:border-[rgba(255,255,255,0.1)] transition-colors">
-                      <div className="max-w-[70%]">
-                        <span className="text-[9px] uppercase tracking-wider text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2.5 py-0.5 rounded">{res.code}</span>
-                        <h4 className="text-white font-medium text-sm mt-2">{res.title}</h4>
-                        <p className="text-[10px] text-[#888880] mt-1 font-light">{res.dept} · {res.level} · {res.semester} · {res.size}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => startEdit(res)} className="p-2 border border-[rgba(255,255,255,0.07)] hover:border-white/20 text-[#888880] hover:text-white rounded transition-colors text-xs" title="Edit"><i className="ti ti-edit" /></button>
-                        <button onClick={() => handleDelete(res, idx)} className="p-2 border border-red-500/10 hover:border-red-500/30 text-red-500/70 hover:text-red-400 rounded transition-colors text-xs" title="Delete"><i className="ti ti-trash" /></button>
-                      </div>
-                    </div>
-                  ))
-                )
-              )}
-
-              {/* Subscribers List */}
               {activeSection === "subscribers" && (
-                subscribers.length === 0 ? (
-                  <div className="text-center py-12 bg-[#1A1A17]/20 rounded-lg border border-[rgba(255,255,255,0.05)]">
-                    <i className="ti ti-mail text-3xl text-[#555550] mb-2 block" />
-                    <p className="text-[#888880] text-xs italic font-light">No subscribers found in database.</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                    {subscribers.map((sub, idx) => (
-                      <div key={sub.id || idx} className="flex justify-between items-center py-3 px-4 hover:bg-white/[0.02] rounded transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-full bg-[#2D7A22]/10 text-[#2D7A22] flex items-center justify-center text-xs">
-                            <i className="ti ti-user" />
-                          </div>
-                          <div>
-                            <span className="text-white text-xs font-medium">{sub.email}</span>
-                            {sub.createdAt && (
-                              <p className="text-[10px] text-[#888880] font-light">Subscribed on {new Date(sub.createdAt).toLocaleDateString()}</p>
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-[10px] text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2 py-0.5 rounded">Active</span>
-                      </div>
-                    ))}
-                  </div>
-                )
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setShowBroadcastModal(true)}
+                    className="px-4 py-2 bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-md transition-colors flex items-center gap-1.5"
+                  >
+                    <i className="ti ti-sparkles text-sm" />
+                    Broadcast Email
+                  </button>
+                  <button
+                    onClick={handleExportCSV}
+                    className="px-3.5 py-2 bg-[#1A1A17] hover:bg-white/[0.04] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] text-xs uppercase tracking-wider font-medium rounded-md transition-colors flex items-center gap-1.5"
+                  >
+                    <i className="ti ti-download text-sm" />
+                    CSV
+                  </button>
+                  <button
+                    onClick={handleCopyAllEmails}
+                    className="px-3.5 py-2 bg-[#1A1A17] hover:bg-white/[0.04] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] text-xs uppercase tracking-wider font-medium rounded-md transition-colors flex items-center gap-1.5"
+                  >
+                    <i className="ti ti-copy text-sm" />
+                    Copy Emails
+                  </button>
+                </div>
               )}
             </div>
+
+            {/* Section Views */}
+            {activeSection === "banner" && (
+              <AdminBannerSection
+                bannerForm={bannerForm}
+                setBannerForm={setBannerForm}
+                handleSaveBanner={handleSaveBanner}
+                bannerSaving={bannerSaving}
+              />
+            )}
+
+            {activeSection === "blogs" && (
+              <AdminBlogsSection
+                blogs={blogs}
+                blogForm={blogForm}
+                setBlogForm={setBlogForm}
+                showForm={showForm}
+                editingItem={editingItem}
+                isSubmitting={isSubmitting}
+                handleSaveBlog={handleSaveBlog}
+                handleBlogImageChange={handleBlogImageChange}
+                startEdit={startEdit}
+                handleDelete={handleDelete}
+                setPreviewPost={setPreviewPost}
+                resetForms={resetForms}
+              />
+            )}
+
+            {activeSection === "events" && (
+              <AdminEventsSection
+                events={events}
+                eventForm={eventForm}
+                setEventForm={setEventForm}
+                showForm={showForm}
+                editingItem={editingItem}
+                isSubmitting={isSubmitting}
+                handleSaveEvent={handleSaveEvent}
+                handleEventFlierChange={handleEventFlierChange}
+                startEdit={startEdit}
+                handleDelete={handleDelete}
+                resetForms={resetForms}
+              />
+            )}
+
+            {activeSection === "resources" && (
+              <AdminResourcesSection
+                resources={resources}
+                resourceForm={resourceForm}
+                setResourceForm={setResourceForm}
+                resourceFile={resourceFile}
+                setResourceFile={setResourceFile}
+                showForm={showForm}
+                editingItem={editingItem}
+                isSubmitting={isSubmitting}
+                handleSaveResource={handleSaveResource}
+                handleResourceFileChange={handleResourceFileChange}
+                startEdit={startEdit}
+                handleDelete={handleDelete}
+                resetForms={resetForms}
+              />
+            )}
+
+            {activeSection === "subscribers" && (
+              <AdminSubscribersSection
+                subscribers={subscribers}
+                campaigns={campaigns}
+              />
+            )}
+
+            {activeSection === "messages" && (
+              <AdminMessagesSection
+                messages={messages}
+                handleMarkRead={handleMarkRead}
+                handleDeleteMessage={handleDeleteMessage}
+              />
+            )}
           </main>
         </div>
       </div>
     </div>
   );
 }
+

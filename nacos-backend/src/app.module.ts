@@ -5,6 +5,8 @@ import { ResourcesModule } from './resources/resources.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
 import { AuthModule } from './auth/auth.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
+import { ContactModule } from './contact/contact.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -20,6 +22,10 @@ import { join } from 'path';
     ResourcesModule,
     SubscribersModule,
     UploadsModule,
+    NewsletterModule,
+    ContactModule,
   ],
 })
 export class AppModule {}
+
+

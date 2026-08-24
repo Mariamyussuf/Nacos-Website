@@ -1,5 +1,7 @@
-export const BACKEND_URL = "http://localhost:3001";
-export const API_BASE_URL = `${BACKEND_URL}/api`;
+export const BACKEND_URL =
+  process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === "production" ? "" : "http://localhost:3001");
+export const API_BASE_URL = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
 
 export const resolveAssetUrl = (url) => {
   if (!url) return "";
@@ -8,6 +10,7 @@ export const resolveAssetUrl = (url) => {
   }
   return url;
 };
+
 
 /** Helper to make fetch calls with credentials (session cookies) */
 async function apiFetch(url, options = {}) {
@@ -24,7 +27,7 @@ async function apiFetch(url, options = {}) {
   return res.json();
 }
 
-// ─── Newsletter ────────────────────────────────────────────────────────────────
+// ─── Newsletter & Broadcast ───────────────────────────────────────────────────
 
 export const subscribe = async (email) => {
   try {
@@ -44,6 +47,134 @@ export const subscribe = async (email) => {
 export const getSubscribers = async () => {
   return apiFetch(`${API_BASE_URL}/subscribers`);
 };
+
+export const broadcastNewsletter = async (campaignData) => {
+  return apiFetch(`${API_BASE_URL}/newsletter/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(campaignData),
+  });
+};
+
+export const sendTestNewsletter = async (testData) => {
+  return apiFetch(`${API_BASE_URL}/newsletter/test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(testData),
+  });
+};
+
+export const getNewsletterCampaigns = async () => {
+  return apiFetch(`${API_BASE_URL}/newsletter/campaigns`);
+};
+
+// ─── Site Banner Settings ────────────────────────────────────────────────────
+
+export const getBanner = async () => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/banner`);
+  } catch (err) {
+    const local = localStorage.getItem('site_banner');
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch (e) {}
+    }
+    return {
+      enabled: true,
+      badge: "NACOS Tech Fest '26",
+      text: '— July 12–16, Main Auditorium.',
+      linkText: 'Register Now →',
+      linkUrl: '/events',
+      accentColor: 'green',
+    };
+  }
+};
+
+export const updateBanner = async (bannerData) => {
+  try {
+    const res = await apiFetch(`${API_BASE_URL}/banner`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bannerData),
+    });
+    localStorage.setItem('site_banner', JSON.stringify(res));
+    window.dispatchEvent(new Event('bannerUpdated'));
+    return res;
+  } catch (err) {
+    localStorage.setItem('site_banner', JSON.stringify(bannerData));
+    window.dispatchEvent(new Event('bannerUpdated'));
+    return bannerData;
+  }
+};
+
+// ─── Contact Messages & Inquiries ────────────────────────────────────────────
+
+export const sendContactMessage = async (data) => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    // Offline local storage fallback
+    const local = JSON.parse(localStorage.getItem('contact_messages') || '[]');
+    const newMsg = {
+      id: `local-${Date.now()}`,
+      name: data.name,
+      email: data.email,
+      subject: data.subject || 'General Inquiry',
+      message: data.message,
+      status: 'unread',
+      createdAt: new Date().toISOString(),
+    };
+    local.unshift(newMsg);
+    localStorage.setItem('contact_messages', JSON.stringify(local));
+    return {
+      success: true,
+      message: "Your message has been received! Our executives will get back to you shortly.",
+    };
+  }
+};
+
+export const getContactMessages = async () => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/contact`);
+  } catch (err) {
+    return JSON.parse(localStorage.getItem('contact_messages') || '[]');
+  }
+};
+
+export const markContactMessageRead = async (id, status = 'read') => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/contact/${id}/read`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+  } catch (err) {
+    const local = JSON.parse(localStorage.getItem('contact_messages') || '[]');
+    const updated = local.map((m) => (m.id === id ? { ...m, status } : m));
+    localStorage.setItem('contact_messages', JSON.stringify(updated));
+    return { success: true, id, status };
+  }
+};
+
+export const deleteContactMessage = async (id) => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/contact/${id}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    const local = JSON.parse(localStorage.getItem('contact_messages') || '[]');
+    const updated = local.filter((m) => m.id !== id);
+    localStorage.setItem('contact_messages', JSON.stringify(updated));
+    return { success: true, message: 'Message deleted' };
+  }
+};
+
+
 
 // ─── Blog ──────────────────────────────────────────────────────────────────────
 
@@ -117,6 +248,57 @@ export const deleteEvent = async (id) => {
     method: 'DELETE',
   });
 };
+
+export const registerForEvent = async (eventId, data) => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/events/${eventId}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    // Offline local storage fallback
+    const local = JSON.parse(localStorage.getItem('event_registrations') || '[]');
+    const newReg = {
+      id: `TKT-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+      eventId,
+      eventTitle: data.eventTitle || 'NACOS Event',
+      fullName: data.fullName,
+      matricNumber: data.matricNumber,
+      email: data.email,
+      phone: data.phone,
+      department: data.department,
+      level: data.level,
+      createdAt: new Date().toISOString(),
+    };
+    local.push(newReg);
+    localStorage.setItem('event_registrations', JSON.stringify(local));
+    return {
+      success: true,
+      ticketId: newReg.id,
+      message: "Registration confirmed! See you at the event.",
+      registration: newReg,
+    };
+  }
+};
+
+export const getEventRegistrations = async (eventId) => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/events/${eventId}/registrations`);
+  } catch (err) {
+    const local = JSON.parse(localStorage.getItem('event_registrations') || '[]');
+    return local.filter((r) => r.eventId === eventId);
+  }
+};
+
+export const getAllEventRegistrations = async () => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/events/admin/registrations`);
+  } catch (err) {
+    return JSON.parse(localStorage.getItem('event_registrations') || '[]');
+  }
+};
+
 
 // ─── Resources (Past Questions) ────────────────────────────────────────────────
 

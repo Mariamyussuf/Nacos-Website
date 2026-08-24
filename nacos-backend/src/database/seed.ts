@@ -1,8 +1,9 @@
 import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { getDb } from './db';
-import { admins, blogPosts } from './schema';
+import { admins, blogPosts, bannerSettings } from './schema';
 import { eq } from 'drizzle-orm';
+
 
 function slugify(title: string): string {
   return title
@@ -186,4 +187,20 @@ export async function seed() {
   } else {
     console.log('ℹ️  Blog posts already exist, skipping seed.');
   }
+
+  // Seed default site banner if none exists
+  const existingBanner = await db.select().from(bannerSettings).limit(1);
+  if (existingBanner.length === 0) {
+    await db.insert(bannerSettings).values({
+      id: 'main-site-banner',
+      enabled: true,
+      badge: "NACOS Tech Fest '26",
+      text: '— July 12–16, Main Auditorium.',
+      linkText: 'Register Now →',
+      linkUrl: '/events',
+      accentColor: 'green',
+    });
+    console.log('✅ Default banner settings seeded.');
+  }
 }
+

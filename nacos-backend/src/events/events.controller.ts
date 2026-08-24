@@ -31,11 +31,40 @@ export class EventsController {
     return this.eventsService.findById(id);
   }
 
+  @Post(':id/register')
+  register(
+    @Param('id') id: string,
+    @Body()
+    dto: {
+      fullName: string;
+      matricNumber: string;
+      email: string;
+      phone?: string;
+      department?: string;
+      level?: string;
+    },
+  ) {
+    return this.eventsService.registerAttendee(id, dto);
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get(':id/registrations')
+  getRegistrations(@Param('id') id: string) {
+    return this.eventsService.getRegistrationsForEvent(id);
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get('admin/registrations')
+  getAllRegistrations() {
+    return this.eventsService.getAllRegistrations();
+  }
+
   @UseGuards(AuthenticatedGuard)
   @Post()
   create(@Body() dto: CreateEventDto) {
     return this.eventsService.create(dto);
   }
+
 
   @UseGuards(AuthenticatedGuard)
   @Patch(':id')

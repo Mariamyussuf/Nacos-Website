@@ -2,9 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { eq, and, sql } from 'drizzle-orm';
 import { getDb } from '../database/db';
-import { events } from '../database/schema';
+import { events, eventRegistrations } from '../database/schema';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+
+export interface RegisterAttendeeDto {
+  fullName: string;
+  matricNumber: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  level?: string;
+}
 
 @Injectable()
 export class EventsService {
@@ -12,7 +21,84 @@ export class EventsService {
     return getDb();
   }
 
+  async registerAttendee(eventId: string, dto: RegisterAttendeeDto) {
+    const db = this.db;
+
+    // Check if event exists
+    const existingEvent = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+
+    const eventTitle = existingEvent.length > 0 ? existingEvent[0].title : 'NACOS Chapter Event';
+
+    // Check for duplicate matric registration for this event
+    const duplicate = await db
+      .select()
+      .from(eventRegistrations)
+      .where(
+        and(
+          eq(eventRegistrations.eventId, eventId),
+          eq(eventRegistrations.matricNumber, dto.matricNumber.trim().toUpperCase())
+        )
+      )
+      .limit(1);
+
+    if (duplicate.length > 0) {
+      return {
+        success: true,
+        alreadyRegistered: true,
+        ticketId: duplicate[0].id,
+        message: `You are already registered for "${eventTitle}"!`,
+        registration: duplicate[0],
+      };
+    }
+
+    const id = `TKT-${uuid().slice(0, 8).toUpperCase()}`;
+
+    const newReg = {
+      id,
+      eventId,
+      eventTitle,
+      fullName: dto.fullName.trim(),
+      matricNumber: dto.matricNumber.trim().toUpperCase(),
+      email: dto.email.trim(),
+      phone: dto.phone ? dto.phone.trim() : null,
+      department: dto.department || 'Computer Sciences',
+      level: dto.level || '100 Level',
+    };
+
+    await db.insert(eventRegistrations).values(newReg);
+
+    return {
+      success: true,
+      alreadyRegistered: false,
+      ticketId: id,
+      message: `Registration confirmed for "${eventTitle}"! See you there.`,
+      registration: newReg,
+    };
+  }
+
+  async getRegistrationsForEvent(eventId: string) {
+    const db = this.db;
+    return db
+      .select()
+      .from(eventRegistrations)
+      .where(eq(eventRegistrations.eventId, eventId))
+      .orderBy(sql`${eventRegistrations.createdAt} DESC`);
+  }
+
+  async getAllRegistrations() {
+    const db = this.db;
+    return db
+      .select()
+      .from(eventRegistrations)
+      .orderBy(sql`${eventRegistrations.createdAt} DESC`);
+  }
+
   async findAll(query: { status?: string; category?: string }) {
+
     const db = this.db;
     const conditions: any[] = [];
 
