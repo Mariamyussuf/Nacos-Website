@@ -11,6 +11,24 @@ import { seed } from '../src/database/seed';
 const server = express();
 let isInitialized = false;
 
+server.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'NACOS Bells Chapter API is live & running smoothly 🚀',
+    version: '1.0.0',
+    college: 'College of Information and Communications Technology, Bells University of Technology',
+    endpoints: {
+      blogs: '/api/blogs',
+      events: '/api/events',
+      resources: '/api/resources',
+      banner: '/api/banner',
+      contact: '/api/contact',
+      subscribers: '/api/subscribe',
+    },
+  });
+});
+
+
 async function bootstrap() {
   try {
     await migrate();

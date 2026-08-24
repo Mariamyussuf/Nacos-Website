@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { ContactModule } from './contact/contact.module';
+import { AppController } from './app.controller';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -25,7 +26,9 @@ import { join } from 'path';
     NewsletterModule,
     ContactModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
+
 
 
