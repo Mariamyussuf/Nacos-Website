@@ -1,58 +1,110 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const BlogCard = ({ title, date, excerpt, category, author, readTime, delay = 0, expanded, onToggle, image }) => {
+const BlogCard = ({
+  id,
+  title,
+  date,
+  excerpt,
+  category,
+  author,
+  readTime,
+  delay = 0,
+  image,
+  onClick,
+  onBookmarkToggle,
+  isBookmarked = false,
+}) => {
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay }}
-      className="glow-card overflow-hidden group cursor-pointer flex flex-col justify-between"
-      onClick={onToggle}
+      className="glow-card overflow-hidden group cursor-pointer flex flex-col justify-between h-full"
+      onClick={onClick}
     >
-      {image && (
-        <div className="h-44 w-full overflow-hidden border-b border-[rgba(255,255,255,0.07)]">
-          <img
-            src={image}
-            alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        </div>
-      )}
-      <div className="p-5 sm:p-6">
-        {/* Category */}
-        <span className="text-[11px] uppercase tracking-[0.18em] text-[#888880] mb-3 inline-block font-normal">
-          {category}
-        </span>
-
-        {/* Title */}
-        <h3 className="font-display font-medium text-[#F0EDE6] text-base leading-snug mb-2 group-hover:text-white transition-colors">
-          {title}
-        </h3>
-
-        {/* Excerpt */}
-        <p className={`text-[#888880] text-[13px] leading-relaxed font-light ${expanded ? "" : "line-clamp-3"}`}>
-          {excerpt}
-        </p>
-
-        {expanded && (
-          <p className="text-[#2D7A22] text-xs font-normal mt-3">
-            ↑ Click to collapse
-          </p>
+      <div>
+        {image ? (
+          <div className="h-44 sm:h-48 w-full overflow-hidden border-b border-[rgba(255,255,255,0.07)] relative">
+            <img
+              src={image}
+              alt={title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+            <div className="absolute top-3 left-3">
+              <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[#F0EDE6] border border-white/10 font-medium">
+                {category}
+              </span>
+            </div>
+            {onBookmarkToggle && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBookmarkToggle();
+                }}
+                title={isBookmarked ? "Remove Bookmark" : "Save Article"}
+                className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${
+                  isBookmarked
+                    ? "bg-[#2D7A22] text-white"
+                    : "bg-black/60 text-white/80 hover:text-white hover:bg-black/80"
+                }`}
+              >
+                <i className={isBookmarked ? "ti ti-bookmark-filled text-sm" : "ti ti-bookmark text-sm"} />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="p-5 sm:p-6 pb-0 flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-widest text-[#888880] px-2.5 py-1 rounded-full bg-white/[0.03] border border-[rgba(255,255,255,0.07)] font-normal">
+              {category}
+            </span>
+            {onBookmarkToggle && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBookmarkToggle();
+                }}
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                  isBookmarked ? "text-[#2D7A22]" : "text-[#888880] hover:text-white"
+                }`}
+              >
+                <i className={isBookmarked ? "ti ti-bookmark-filled text-sm" : "ti ti-bookmark text-sm"} />
+              </button>
+            )}
+          </div>
         )}
 
-        {/* Meta */}
-        <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-4 border-t border-[rgba(255,255,255,0.07)]">
+        <div className="p-5 sm:p-6">
+          {/* Title */}
+          <h3 className="font-display font-medium text-[#F0EDE6] text-base sm:text-lg leading-snug mb-2.5 group-hover:text-[#2D7A22] transition-colors line-clamp-2">
+            {title}
+          </h3>
+
+          {/* Excerpt */}
+          <p className="text-[#888880] text-xs sm:text-[13px] leading-relaxed font-light line-clamp-3 mb-4">
+            {excerpt}
+          </p>
+        </div>
+      </div>
+
+      {/* Footer Meta & Read Action */}
+      <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0">
+        <div className="flex items-center justify-between pt-3 border-t border-[rgba(255,255,255,0.07)] text-xs text-[#888880]">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
-              <span className="text-[#F0EDE6] text-xs font-normal">{author?.[0]}</span>
+            <div className="w-6 h-6 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center text-[10px] font-medium text-[#F0EDE6]">
+              {author?.[0] || "N"}
             </div>
-            <span className="text-xs text-[#888880] font-light">{author}</span>
+            <span className="font-light truncate max-w-[100px]">{author}</span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-[#555550]">
-            <span className="flex items-center"><i className="ti ti-calendar mr-1" /> {date}</span>
-            <span className="flex items-center"><i className="ti ti-clock mr-1" /> {readTime}</span>
+
+          <div className="flex items-center gap-2 text-[#555550]">
+            <span>{readTime}</span>
+            <span>·</span>
+            <span className="text-[#2D7A22] font-medium flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
+              Read <i className="ti ti-arrow-right text-[11px]" />
+            </span>
           </div>
         </div>
       </div>

@@ -1,58 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../components/Toast";
+import { INITIAL_BLOG_POSTS } from "../data/blogData";
+import BlogReaderModal from "../components/BlogReaderModal";
 
-// Initial seed data from pages
-const DEFAULT_POSTS = [
-  {
-    title: "NACOS Bells Chapter Kicks Off 2025 with a Bang!",
-    date: "Feb 12, 2025",
-    category: "News",
-    author: "PRO Team",
-    readTime: "3 min read",
-    excerpt: "The new academic year started in style as NACOS Bells Chapter welcomed over 200 students at its annual Welcome Week event. From exciting introductions to fun socials, it was a week to remember.",
-  },
-  {
-    title: "Highlights from the NACOS Coding Challenge 2025",
-    date: "Apr 25, 2025",
-    category: "Events",
-    author: "Tech Director",
-    readTime: "4 min read",
-    excerpt: "The 2025 NACOS Coding Challenge saw over 60 participants compete across 3 rounds of algorithmic problem-solving. Here's a full recap of the winners, challenges, and the incredible energy in the room.",
-  },
-  {
-    title: "5 Tech Skills Every CS Student Should Learn in 2025",
-    date: "Mar 20, 2025",
-    category: "Tech Tips",
-    author: "NACOS Bells",
-    readTime: "6 min read",
-    excerpt: "Whether you're in your 100 or 400 level, these five in-demand tech skills will make you stand out to employers and open doors to internships and freelance opportunities.",
-  },
-  {
-    title: "How to Make the Most of Your Time in NACOS",
-    date: "Jan 30, 2025",
-    category: "Student Life",
-    author: "Gen Sec",
-    readTime: "5 min read",
-    excerpt: "Being in NACOS is more than just attending events. Here are practical ways to maximize your membership — from taking on leadership roles to representing NACOS at national competitions.",
-  },
-  {
-    title: "Web Dev Bootcamp 2025: A Student's Perspective",
-    date: "May 18, 2025",
-    category: "Events",
-    author: "Welfare Team",
-    readTime: "4 min read",
-    excerpt: "One of our members shares their experience from the 3-day Web Development Bootcamp — what they learned, what surprised them, and why every CS student should attend next time.",
-  },
-  {
-    title: "Meet Your 2025 NACOS Bells Executives",
-    date: "Jan 10, 2025",
-    category: "News",
-    author: "PRO Team",
-    readTime: "3 min read",
-    excerpt: "A new executive council has been sworn in! Get to know the 15 dedicated student leaders who will be steering the NACOS Bells Chapter ship this year and their plans for the chapter.",
-  },
-];
+const DEFAULT_POSTS = INITIAL_BLOG_POSTS;
 
 const DEFAULT_EVENTS = [
   {
@@ -174,16 +126,21 @@ export default function Admin() {
   const [blogs, setBlogs] = useState([]);
   const [events, setEvents] = useState([]);
   const [resources, setResources] = useState([]);
+  const [previewPost, setPreviewPost] = useState(null);
 
   // Form states
   const [blogForm, setBlogForm] = useState({
+    id: "",
     title: "",
     date: "",
     category: "News",
     author: "",
-    readTime: "3 min read",
+    authorRole: "",
+    readTime: "4 min read",
     excerpt: "",
-    image: "", // Base64 cover image
+    content: "",
+    tagsInput: "",
+    image: "", // Base64 or URL
   });
 
   const [eventForm, setEventForm] = useState({
@@ -280,7 +237,19 @@ export default function Admin() {
   }, []);
 
   const resetForms = () => {
-    setBlogForm({ title: "", date: "", category: "News", author: "", readTime: "3 min read", excerpt: "", image: "" });
+    setBlogForm({
+      id: "",
+      title: "",
+      date: "",
+      category: "News",
+      author: "",
+      authorRole: "",
+      readTime: "4 min read",
+      excerpt: "",
+      content: "",
+      tagsInput: "",
+      image: "",
+    });
     setEventForm({ title: "", date: "", venue: "", description: "", category: "Seminar", status: "upcoming", flier: "", commentary: "" });
     setResourceForm({ code: "", title: "", dept: "Computer Sciences", level: "100 Level", semester: "1st Semester", year: "2025/2026", size: "1.0 MB", fileData: "" });
     setEditingIndex(null);
@@ -292,11 +261,23 @@ export default function Admin() {
   const handleSaveBlog = (e) => {
     e.preventDefault();
     let updatedBlogs = [...blogs];
+
+    const tagsArray = blogForm.tagsInput
+      ? blogForm.tagsInput.split(",").map((t) => t.trim()).filter(Boolean)
+      : blogForm.tags || [];
+
+    const formattedPost = {
+      ...blogForm,
+      id: blogForm.id || `post-${Date.now()}`,
+      tags: tagsArray,
+    };
+    delete formattedPost.tagsInput;
+
     if (editingIndex !== null) {
-      updatedBlogs[editingIndex] = blogForm;
+      updatedBlogs[editingIndex] = formattedPost;
       showToast("Blog post updated successfully", "success");
     } else {
-      updatedBlogs.unshift(blogForm);
+      updatedBlogs.unshift(formattedPost);
       showToast("Blog post created successfully", "success");
     }
     setBlogs(updatedBlogs);
@@ -374,46 +355,50 @@ export default function Admin() {
 
   return (
     <div className="pt-16 bg-[#0A0A08] min-h-screen text-[#F0EDE6] selection:bg-[#2D7A22] selection:text-[#F0EDE6]">
+      {/* Blog Article Live Preview Modal */}
+      <BlogReaderModal
+        post={previewPost}
+        isOpen={Boolean(previewPost)}
+        onClose={() => setPreviewPost(null)}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
-          
+
           {/* ====== SIDEBAR ====== */}
           <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
             <div className="p-4 border border-[rgba(255,255,255,0.07)] bg-[#111110] rounded-xl mb-2 sm:mb-4 text-center">
               <span className="text-[10px] uppercase tracking-widest text-[#888880] block mb-1">Administrative Role</span>
               <h2 className="text-white font-display font-medium text-sm">NACOS Administrator</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-2">
               <button
                 onClick={() => { setActiveSection("blogs"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "blogs"
+                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${activeSection === "blogs"
                     ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
                     : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
+                  }`}
               >
                 <i className="ti ti-news text-base" />
                 Manage Blogs
               </button>
               <button
                 onClick={() => { setActiveSection("events"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "events"
+                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${activeSection === "events"
                     ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
                     : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
+                  }`}
               >
                 <i className="ti ti-calendar-event text-base" />
                 Manage Events
               </button>
               <button
                 onClick={() => { setActiveSection("resources"); resetForms(); }}
-                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${
-                  activeSection === "resources"
+                className={`w-full px-4 sm:px-5 py-3 rounded-lg text-xs uppercase tracking-wider font-medium text-left border flex items-center gap-3 transition-colors ${activeSection === "resources"
                     ? "bg-[#2D7A22] border-transparent text-[#F0EDE6]"
                     : "bg-[#111110] border-[rgba(255,255,255,0.07)] text-[#888880] hover:text-white"
-                }`}
+                  }`}
               >
                 <i className="ti ti-books text-base" />
                 Manage Resources
@@ -423,7 +408,7 @@ export default function Admin() {
 
           {/* ====== WORKSPACE ====== */}
           <main className="flex-1 bg-[#111110] border border-[rgba(255,255,255,0.07)] rounded-xl p-5 sm:p-8">
-            
+
             {/* Header / Stats Panel */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-[rgba(255,255,255,0.07)]">
               <div>
@@ -497,19 +482,29 @@ export default function Admin() {
                           onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
                           className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40"
                         >
-                          {["News", "Events", "Tech Tips", "Student Life"].map((cat) => (
+                          {["News", "Events", "Tech Tips", "Student Life", "Tutorials"].map((cat) => (
                             <option key={cat} value={cat}>{cat}</option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Author Tag</label>
+                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Author Name</label>
                         <input
                           type="text"
                           required
                           value={blogForm.author}
                           onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
-                          placeholder="e.g. PRO Team"
+                          placeholder="e.g. PRO Team / Mariam Yussuf"
+                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Author Role / Directorate</label>
+                        <input
+                          type="text"
+                          value={blogForm.authorRole || ""}
+                          onChange={(e) => setBlogForm({ ...blogForm, authorRole: e.target.value })}
+                          placeholder="e.g. Technical Directorate"
                           className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40"
                         />
                       </div>
@@ -524,25 +519,48 @@ export default function Admin() {
                           className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40"
                         />
                       </div>
+                      <div>
+                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Tags (comma separated)</label>
+                        <input
+                          type="text"
+                          value={blogForm.tagsInput || ""}
+                          onChange={(e) => setBlogForm({ ...blogForm, tagsInput: e.target.value })}
+                          placeholder="e.g. React, Bootcamp, Hackathon"
+                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40"
+                        />
+                      </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Excerpt / Summary</label>
+                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Excerpt / Summary (Short Preview)</label>
                         <textarea
                           required
                           value={blogForm.excerpt}
                           onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-                          placeholder="Provide a short intro paragraph..."
-                          rows={3}
+                          placeholder="Provide a compelling 2-3 sentence overview..."
+                          rows={2}
                           className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40 resize-none"
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Cover Image (Optional)</label>
-                        <div className="flex items-center gap-4 bg-[#1A1A17] p-4 rounded border border-[rgba(255,255,255,0.07)]">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <label className="block text-[10px] uppercase text-[#888880] tracking-wider">Full Article Body (Markdown Supported)</label>
+                          <span className="text-[10px] text-[#555550]">Tip: Use ### for headers,for quotes, 1. for lists</span>
+                        </div>
+                        <textarea
+                          value={blogForm.content || ""}
+                          onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
+                          placeholder="Write the full body of the story here. Supports markdown headings (### Subheading), quotes (> Inspirational quote), and bullet lists..."
+                          rows={8}
+                          className="w-full px-4 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-sm rounded-md focus:outline-none focus:border-[#2D7A22]/40 font-mono text-xs leading-relaxed"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] uppercase text-[#888880] mb-1.5 tracking-wider">Cover Image (Upload or URL)</label>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#1A1A17] p-4 rounded border border-[rgba(255,255,255,0.07)]">
                           {blogForm.image ? (
-                            <div className="relative w-24 h-24 rounded border border-[rgba(255,255,255,0.07)] overflow-hidden">
+                            <div className="relative w-28 h-20 rounded border border-[rgba(255,255,255,0.07)] overflow-hidden">
                               <img src={blogForm.image} alt="Preview" className="w-full h-full object-cover" />
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => setBlogForm({ ...blogForm, image: "" })}
                                 className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-[10px]"
                                 title="Remove Image"
@@ -551,14 +569,21 @@ export default function Admin() {
                               </button>
                             </div>
                           ) : (
-                            <div className="flex flex-col gap-1.5">
+                            <div className="flex flex-col gap-1.5 w-full">
                               <input
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) => handleFileChange(e, "blog", "image")}
                                 className="text-xs text-[#888880] file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#2D7A22] file:text-[#F0EDE6] hover:file:bg-[#3A9C2D] file:cursor-pointer"
                               />
-                              <span className="text-[10px] text-[#555550]">Supports JPEG, PNG (max 800x800 auto-resizing)</span>
+                              <span className="text-[10px] text-[#555550]">Supports JPEG, PNG (max 800x800 auto-resizing). Or paste an external image URL:</span>
+                              <input
+                                type="text"
+                                value={blogForm.image || ""}
+                                onChange={(e) => setBlogForm({ ...blogForm, image: e.target.value })}
+                                placeholder="https://images.unsplash.com/..."
+                                className="w-full px-3 py-1.5 bg-[#111110] border border-[rgba(255,255,255,0.07)] text-white text-xs rounded focus:outline-none focus:border-[#2D7A22]/40 mt-1"
+                              />
                             </div>
                           )}
                         </div>
@@ -639,8 +664,8 @@ export default function Admin() {
                           {eventForm.flier && eventForm.flier.startsWith("data:") ? (
                             <div className="relative w-24 h-24 rounded border border-[rgba(255,255,255,0.07)] overflow-hidden flex-shrink-0">
                               <img src={eventForm.flier} alt="Preview" className="w-full h-full object-cover" />
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => setEventForm({ ...eventForm, flier: "" })}
                                 className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 text-[10px]"
                                 title="Remove Flier"
@@ -659,9 +684,9 @@ export default function Admin() {
                               <span className="text-[10px] text-[#555550]">Upload an image file (auto-compressed)</span>
                             </div>
                           )}
-                          
+
                           <div className="hidden sm:flex items-center text-[#555550] text-xs font-light px-2">OR</div>
-                          
+
                           <div className="flex-1 flex flex-col justify-center">
                             <input
                               type="text"
@@ -790,8 +815,8 @@ export default function Admin() {
                                   <div className="text-[10px] text-[#888880]">File Size: {resourceForm.size}</div>
                                 </div>
                               </div>
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => setResourceForm({ ...resourceForm, fileData: "", size: "1.0 MB" })}
                                 className="bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded p-1.5 text-xs transition-colors"
                                 title="Remove PDF"
@@ -829,7 +854,7 @@ export default function Admin() {
 
             {/* ====== RECORD ROWS LIST ====== */}
             <div className="space-y-4">
-              
+
               {/* Blog Records List */}
               {activeSection === "blogs" && (
                 blogs.length === 0 ? (
@@ -838,11 +863,15 @@ export default function Admin() {
                   blogs.map((post, idx) => (
                     <div key={idx} className="flex justify-between items-center bg-[#1A1A17]/40 border border-[rgba(255,255,255,0.05)] rounded-lg p-4 hover:border-[rgba(255,255,255,0.1)] transition-colors">
                       <div className="max-w-[70%]">
-                        <span className="text-[9px] uppercase tracking-wider text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2 py-0.5 rounded">{post.category}</span>
-                        <h4 className="text-white font-medium text-sm mt-2">{post.title}</h4>
-                        <p className="text-[10px] text-[#888880] mt-1 font-light">By {post.author} · {post.date}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[9px] uppercase tracking-wider text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2 py-0.5 rounded font-medium">{post.category}</span>
+                          <span className="text-[10px] text-[#888880] font-light">{post.readTime}</span>
+                        </div>
+                        <h4 className="text-white font-medium text-sm mt-1 line-clamp-1">{post.title}</h4>
+                        <p className="text-[10px] text-[#888880] mt-1 font-light">By {post.author} {post.authorRole ? `(${post.authorRole})` : ""} · {post.date}</p>
                       </div>
                       <div className="flex gap-2">
+                        <button onClick={() => setPreviewPost(post)} className="p-2 border border-[#2D7A22]/30 hover:border-[#2D7A22] text-[#2D7A22] hover:bg-[#2D7A22]/10 rounded transition-colors text-xs" title="Preview Article"><i className="ti ti-eye" /></button>
                         <button onClick={() => startEdit(idx)} className="p-2 border border-[rgba(255,255,255,0.07)] hover:border-white/20 text-[#888880] hover:text-white rounded transition-colors text-xs" title="Edit"><i className="ti ti-edit" /></button>
                         <button onClick={() => handleDelete(idx)} className="p-2 border border-red-500/10 hover:border-red-500/30 text-red-500/70 hover:text-red-400 rounded transition-colors text-xs" title="Delete"><i className="ti ti-trash" /></button>
                       </div>
