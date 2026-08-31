@@ -59,9 +59,9 @@ function ParticleField({ count = 160, isLight }) {
     <instancedMesh ref={meshRef} args={[null, null, count]}>
       <sphereGeometry args={[1, 8, 8]} />
       <meshBasicMaterial
-        color={isLight ? "#178905" : "#3DEB00"}
+        color={isLight ? "#1E5014" : "#3DEB00"}
         transparent
-        opacity={isLight ? 0.32 : 0.65}
+        opacity={isLight ? 0.18 : 0.65}
       />
     </instancedMesh>
   );
@@ -84,10 +84,10 @@ function WireframeShape({ isLight }) {
       <mesh ref={meshRef} position={[3.5, 0.5, -2]}>
         <icosahedronGeometry args={[2, 1]} />
         <meshBasicMaterial
-          color="#178905"
+          color={isLight ? "#1E5014" : "#178905"}
           wireframe
           transparent
-          opacity={isLight ? 0.25 : 0.22}
+          opacity={isLight ? 0.12 : 0.22}
         />
       </mesh>
     </Float>
@@ -130,7 +130,7 @@ export default function HeroScene() {
         style={{ background: "transparent" }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       >
-        <ambientLight intensity={isLight ? 0.6 : 0.3} />
+        <ambientLight intensity={isLight ? 0.35 : 0.3} />
 
         {/* Starfield backdrop (dark mode only) */}
         {!isLight && (

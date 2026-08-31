@@ -372,10 +372,8 @@ export default function Home() {
             </motion.span>
             <span
               ref={bellsRef}
-              className="font-medium inline-flex text-[#2D7A22]"
+              className="font-medium inline-flex text-[#2D7A22] bells-text"
               style={{
-                filter: "drop-shadow(0 0 18px rgba(58,156,45,0.45))",
-                animation: "bellsGlow 3.5s ease-in-out infinite",
                 perspective: "600px",
               }}
             >
@@ -391,11 +389,18 @@ export default function Home() {
             </span>
           </h1>
 
-          {/* keyframes injected once */}
+          {/* keyframes for dark mode */}
           <style>{`
+            :not(.light) .bells-text {
+              animation: bellsGlow 3.5s ease-in-out infinite;
+            }
+            .light .bells-text {
+              filter: none !important;
+              animation: none !important;
+            }
             @keyframes bellsGlow {
-              0%,100% { filter: drop-shadow(0 0 10px rgba(58,156,45,0.30)); }
-              50%      { filter: drop-shadow(0 0 28px rgba(58,156,45,0.65)); }
+              0%,100% { filter: drop-shadow(0 0 8px rgba(61,235,0,0.30)); }
+              50%      { filter: drop-shadow(0 0 20px rgba(61,235,0,0.55)); }
             }
           `}</style>
 
