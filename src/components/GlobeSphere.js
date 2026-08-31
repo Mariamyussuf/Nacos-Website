@@ -18,20 +18,20 @@ function Sphere() {
       <mesh ref={meshRef}>
         <sphereGeometry args={[1.8, 24, 24]} />
         <meshBasicMaterial
-          color="#2D7A22"
+          color="#178905"
           wireframe
           transparent
-          opacity={0.12}
+          opacity={0.18}
         />
       </mesh>
       {/* Inner sphere for subtle glow depth */}
       <mesh ref={useRef()}>
         <sphereGeometry args={[1.6, 16, 16]} />
         <meshBasicMaterial
-          color="#3A9C2D"
+          color="#3DEB00"
           wireframe
           transparent
-          opacity={0.06}
+          opacity={0.09}
         />
       </mesh>
     </Float>

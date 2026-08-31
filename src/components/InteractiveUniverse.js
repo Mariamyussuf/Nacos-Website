@@ -4,8 +4,8 @@ import { Float, Html, Stars } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
-const GREEN = "#2D7A22";
-const GREEN_BRIGHT = "#3A9C2D";
+const GREEN = "#178905";
+const GREEN_BRIGHT = "#3DEB00";
 
 const WORLDS = [
   { id: "ai",       name: "AI & Intelligence",     tablerIcon: "ti-brain",       desc: "Generative AI, Machine Learning, Deep Learning, and Python models. We build intelligent agents and explore cognitive systems.", pos: [-3.5, 1.8, 0] },

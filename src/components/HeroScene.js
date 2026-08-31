@@ -1,10 +1,26 @@
-import React, { useRef, useMemo, useCallback } from "react";
+import React, { useRef, useMemo, useCallback, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars, Float } from "@react-three/drei";
 import * as THREE from "three";
 
+function useIsLight() {
+  const [isLight, setIsLight] = useState(() =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("light")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsLight(document.documentElement.classList.contains("light"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return isLight;
+}
+
 // ─── Animated floating particles ───────────────────────────────────────────
-function ParticleField({ count = 180 }) {
+function ParticleField({ count = 160, isLight }) {
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
@@ -17,7 +33,7 @@ function ParticleField({ count = 180 }) {
         z: (Math.random() - 0.5) * 8,
         speed: 0.1 + Math.random() * 0.3,
         phase: Math.random() * Math.PI * 2,
-        scale: 0.02 + Math.random() * 0.04,
+        scale: 0.02 + Math.random() * 0.035,
       });
     }
     return arr;
@@ -42,13 +58,17 @@ function ParticleField({ count = 180 }) {
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
       <sphereGeometry args={[1, 8, 8]} />
-      <meshBasicMaterial color="#3A9C2D" transparent opacity={0.6} />
+      <meshBasicMaterial
+        color={isLight ? "#178905" : "#3DEB00"}
+        transparent
+        opacity={isLight ? 0.32 : 0.65}
+      />
     </instancedMesh>
   );
 }
 
 // ─── Wireframe icosahedron ─────────────────────────────────────────────────
-function WireframeShape() {
+function WireframeShape({ isLight }) {
   const meshRef = useRef();
 
   useFrame(({ clock }) => {
@@ -64,10 +84,10 @@ function WireframeShape() {
       <mesh ref={meshRef} position={[3.5, 0.5, -2]}>
         <icosahedronGeometry args={[2, 1]} />
         <meshBasicMaterial
-          color="#2D7A22"
+          color="#178905"
           wireframe
           transparent
-          opacity={0.15}
+          opacity={isLight ? 0.25 : 0.22}
         />
       </mesh>
     </Float>
@@ -84,7 +104,7 @@ function CameraRig() {
     mouse.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [handleMouseMove]);
@@ -100,6 +120,8 @@ function CameraRig() {
 
 // ─── Main Scene ────────────────────────────────────────────────────────────
 export default function HeroScene() {
+  const isLight = useIsLight();
+
   return (
     <div className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
       <Canvas
@@ -108,24 +130,26 @@ export default function HeroScene() {
         style={{ background: "transparent" }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       >
-        <ambientLight intensity={0.3} />
+        <ambientLight intensity={isLight ? 0.6 : 0.3} />
 
-        {/* Starfield backdrop */}
-        <Stars
-          radius={50}
-          depth={30}
-          count={800}
-          factor={2}
-          saturation={0}
-          fade
-          speed={0.5}
-        />
+        {/* Starfield backdrop (dark mode only) */}
+        {!isLight && (
+          <Stars
+            radius={50}
+            depth={30}
+            count={800}
+            factor={2}
+            saturation={0}
+            fade
+            speed={0.5}
+          />
+        )}
 
         {/* Floating green particles */}
-        <ParticleField count={180} />
+        <ParticleField count={160} isLight={isLight} />
 
         {/* Wireframe icosahedron */}
-        <WireframeShape />
+        <WireframeShape isLight={isLight} />
 
         {/* Mouse parallax camera */}
         <CameraRig />
