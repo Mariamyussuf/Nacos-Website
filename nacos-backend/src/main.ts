@@ -5,6 +5,10 @@ import session from 'express-session';
 import passport from 'passport';
 import { migrate } from './database/migrate';
 import { seed } from './database/seed';
+import {
+  securityHeadersMiddleware,
+  apiRateLimitMiddleware,
+} from './common/security.middleware';
 
 async function bootstrap() {
   // Run migrations and seed
@@ -12,6 +16,12 @@ async function bootstrap() {
   await seed();
 
   const app = await NestFactory.create(AppModule);
+
+  // Security Headers (HSTS, X-Content-Type-Options, X-Frame-Options, XSS protection)
+  app.use(securityHeadersMiddleware);
+
+  // Rate Limiting & Throttling (DDoS & Brute Force Defense)
+  app.use(apiRateLimitMiddleware);
 
   // Global prefix
   app.setGlobalPrefix('api');
@@ -22,7 +32,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Validation pipes
+  // Strict Validation pipes (OWASP Mass Assignment Prevention)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

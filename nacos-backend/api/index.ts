@@ -7,9 +7,17 @@ import session from 'express-session';
 import passport from 'passport';
 import { migrate } from '../src/database/migrate';
 import { seed } from '../src/database/seed';
+import {
+  securityHeadersMiddleware,
+  apiRateLimitMiddleware,
+} from '../src/common/security.middleware';
 
 const server = express();
 let isInitialized = false;
+
+// Apply security headers and throttling on express server
+server.use(securityHeadersMiddleware);
+server.use(apiRateLimitMiddleware);
 
 server.get('/', (req, res) => {
   res.json({
@@ -24,10 +32,10 @@ server.get('/', (req, res) => {
       banner: '/api/banner',
       contact: '/api/contact',
       subscribers: '/api/subscribe',
+      forms: '/api/forms',
     },
   });
 });
-
 
 async function bootstrap() {
   try {
