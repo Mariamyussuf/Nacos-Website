@@ -11,6 +11,7 @@ import AdminResourcesSection from "../components/admin/AdminResourcesSection";
 import AdminSubscribersSection from "../components/admin/AdminSubscribersSection";
 import AdminMessagesSection from "../components/admin/AdminMessagesSection";
 import NewsletterStudioModal from "../components/admin/NewsletterStudioModal";
+import AdminFormsSection from "../components/admin/AdminFormsSection";
 import {
   getBlogs,
   createBlog,
@@ -91,52 +92,52 @@ const DEFAULT_RESOURCES = [
 const DEFAULT_NEWSLETTER_TEMPLATES = {
   event: {
     template: "event",
-    subject: "🚀 Register Now: NACOS Tech Fest '26 is Coming to Bells!",
+    subject: "ðŸš€ Register Now: NACOS Tech Fest '26 is Coming to Bells!",
     preheader: "5 days of hackathons, keynote sessions, and tech exhibitions at Bells University.",
     eyebrow: "TECH FEST 2026",
     headline: "Build, Innovate & Compete at NACOS Tech Fest 2026",
     bannerImage: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
     bodyContent: "We are thrilled to announce that registration for NACOS Tech Fest '26 is officially open!\n\nJoin over 200+ computing students, industry leaders, and tech enthusiasts across 5 action-packed days of coding challenges, design sprints, and hardware demos. Whether you are in 100 level or final year, there is a track built just for you.\n\nSecure your spot today and get ready to represent your department.",
     highlights: [
-      "📅 Date: July 12–16, 2026",
-      "📍 Venue: Main Auditorium & CIS Labs",
-      "🏆 Prizes: Over ₦500,000 in hackathon grants & mentorship",
-      "🎯 Tracks: Software Engineering, AI/Data, UI/UX, Cyber Security"
+      "ðŸ“… Date: July 12â€“16, 2026",
+      "ðŸ“ Venue: Main Auditorium & CIS Labs",
+      "ðŸ† Prizes: Over â‚¦500,000 in hackathon grants & mentorship",
+      "ðŸŽ¯ Tracks: Software Engineering, AI/Data, UI/UX, Cyber Security"
     ],
-    ctaText: "Register for Tech Fest →",
+    ctaText: "Register for Tech Fest â†’",
     ctaUrl: "https://nacos-bells.vercel.app/events"
   },
   blog: {
     template: "blog",
-    subject: "📖 New Story: 5 Tech Skills Every Computing Student Must Master",
+    subject: "ðŸ“– New Story: 5 Tech Skills Every Computing Student Must Master",
     preheader: "Fresh insights and career advice from the NACOS Editorial Board.",
     eyebrow: "EDITORIAL DIGEST",
     headline: "5 In-Demand Tech Skills to Boost Your Career in 2026",
     bannerImage: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
     bodyContent: "The tech landscape is evolving at lightning speed. To help Bells computing students stay ahead of the curve, we've broken down the top five high-growth skills employers are looking for right now.\n\nFrom cloud architecture to practical AI workflow integration, check out this comprehensive breakdown written exclusively for our student community.",
     highlights: [
-      "💡 Cloud Infrastructure & Containerization (Docker, AWS)",
-      "🔒 Secure Coding & API Architecture",
-      "⚡ AI Tooling & Data Engineering Foundations",
-      "🤝 Open Source Contribution Pathways"
+      "ðŸ’¡ Cloud Infrastructure & Containerization (Docker, AWS)",
+      "ðŸ”’ Secure Coding & API Architecture",
+      "âš¡ AI Tooling & Data Engineering Foundations",
+      "ðŸ¤ Open Source Contribution Pathways"
     ],
-    ctaText: "Read Full Article →",
+    ctaText: "Read Full Article â†’",
     ctaUrl: "https://nacos-bells.vercel.app/blog"
   },
   general: {
     template: "general",
-    subject: "📢 Important Update: NACOS Chapter Academic Resources & Timetable",
+    subject: "ðŸ“¢ Important Update: NACOS Chapter Academic Resources & Timetable",
     preheader: "Official communique from the NACOS Executive Council.",
     eyebrow: "EXECUTIVE COMMUNIQUE",
     headline: "Mid-Semester Updates & Course Vault Expansion",
     bannerImage: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80",
     bodyContent: "Dear Computing Students,\n\nThe NACOS Executive Council wishes to share important updates regarding academic support and semester activities.\n\nOur Course Vault has just been refreshed with past examination questions and curated study materials for 100L through 400L students across Computer Science, IT, and Cyber Security departments.\n\nPlease review the study repository and feel free to reach out to your departmental representatives for assistance.",
     highlights: [
-      "📚 Updated 100L–400L Past Exam Collections available in Vault",
-      "💻 Weekly Peer Tutoring sessions running at CIS Lab 2",
-      "🤝 Executive Office Hours: Mondays & Wednesdays (2 PM – 4 PM)"
+      "ðŸ“š Updated 100Lâ€“400L Past Exam Collections available in Vault",
+      "ðŸ’» Weekly Peer Tutoring sessions running at CIS Lab 2",
+      "ðŸ¤ Executive Office Hours: Mondays & Wednesdays (2 PM â€“ 4 PM)"
     ],
-    ctaText: "Access Course Vault →",
+    ctaText: "Access Course Vault â†’",
     ctaUrl: "https://nacos-bells.vercel.app/resources"
   },
   custom: {
@@ -148,7 +149,7 @@ const DEFAULT_NEWSLETTER_TEMPLATES = {
     bannerImage: "",
     bodyContent: "",
     highlights: [],
-    ctaText: "Learn More →",
+    ctaText: "Learn More â†’",
     ctaUrl: "https://nacos-bells.vercel.app"
   }
 };
@@ -234,8 +235,8 @@ export default function Admin() {
   const [bannerForm, setBannerForm] = useState({
     enabled: true,
     badge: "NACOS Tech Fest '26",
-    text: "— July 12–16, Main Auditorium.",
-    linkText: "Register Now →",
+    text: "â€” July 12â€“16, Main Auditorium.",
+    linkText: "Register Now â†’",
     linkUrl: "/events",
     accentColor: "green",
   });
@@ -837,6 +838,7 @@ export default function Admin() {
                   {activeSection === "banner" && "Site Announcement Banner"}
                   {activeSection === "subscribers" && "Newsletter & Broadcast Studio"}
                   {activeSection === "messages" && "Contact Inquiries & Inbox"}
+                  {activeSection === "forms" && "Form Builder"}
                 </h1>
                 <p className="text-xs text-[#888880] mt-1 font-light">
                   {activeSection === "blogs" && `Showing ${blogs.length} stories synced with the NestJS backend.`}
@@ -845,10 +847,11 @@ export default function Admin() {
                   {activeSection === "banner" && "Customize, theme, and toggle the announcement banner shown on top of the website."}
                   {activeSection === "subscribers" && `Manage ${subscribers.length} student subscribers and broadcast promotional emails.`}
                   {activeSection === "messages" && `Review ${messages.length} student inquiries (${unreadCount} unread).`}
+                  {activeSection === "forms" && "Create custom forms, surveys and collect responses."}
                 </p>
               </div>
 
-              {!showForm && !["subscribers", "banner", "messages"].includes(activeSection) && (
+              {!showForm && !["subscribers", "banner", "messages", "forms"].includes(activeSection) && (
                 <button
                   onClick={() => setShowForm(true)}
                   className="px-5 py-2.5 bg-[#2D7A22] hover:bg-[#3A9C2D] text-[#F0EDE6] text-xs uppercase tracking-wider font-medium rounded-md transition-colors flex items-center gap-2"
@@ -962,10 +965,19 @@ export default function Admin() {
                 handleDeleteMessage={handleDeleteMessage}
               />
             )}
+
+            {activeSection === "forms" && (
+              <AdminFormsSection />
+            )}
           </main>
         </div>
       </div>
     </div>
   );
 }
+
+
+
+
+
 

@@ -431,3 +431,76 @@ export const login = async (credentials) => {
     throw new Error("Invalid matric number. Use demo credentials (e.g., 2022/12345, 21/1000, 2023/10001).");
   }
 };
+
+// ─── Form Builder ─────────────────────────────────────────────────────────────
+
+export const getForms = async () => {
+  return apiFetch(`${API_BASE_URL}/forms`);
+};
+
+export const getFormById = async (id) => {
+  return apiFetch(`${API_BASE_URL}/forms/${id}`);
+};
+
+export const createForm = async (data) => {
+  return apiFetch(`${API_BASE_URL}/forms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateForm = async (id, data) => {
+  return apiFetch(`${API_BASE_URL}/forms/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteForm = async (id) => {
+  return apiFetch(`${API_BASE_URL}/forms/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+export const getFormSubmissions = async (id) => {
+  return apiFetch(`${API_BASE_URL}/forms/${id}/submissions`);
+};
+
+export const getPublicForm = async (slug) => {
+  const res = await fetch(`${API_BASE_URL}/forms/public/${slug}`, {
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Form not found (${res.status})`);
+  }
+  return res.json();
+};
+
+export const submitForm = async (formId, data, files = {}) => {
+  const hasFiles = Object.keys(files).length > 0;
+  if (hasFiles) {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+    for (const [fieldId, file] of Object.entries(files)) {
+      formData.append(fieldId, file);
+    }
+    const res = await fetch(`${API_BASE_URL}/forms/${formId}/submit`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Submission failed (${res.status})`);
+    }
+    return res.json();
+  }
+  return apiFetch(`${API_BASE_URL}/forms/${formId}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+};

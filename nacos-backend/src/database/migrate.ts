@@ -1,4 +1,4 @@
-import { getClient } from './db';
+﻿import { getClient } from './db';
 
 /**
  * Run raw SQL to create all tables.
@@ -75,8 +75,8 @@ export async function migrate() {
       id TEXT PRIMARY KEY,
       enabled INTEGER DEFAULT 1,
       badge TEXT DEFAULT 'NACOS Tech Fest ''26',
-      text TEXT DEFAULT '— July 12–16, Main Auditorium.',
-      link_text TEXT DEFAULT 'Register Now →',
+      text TEXT DEFAULT 'â€” July 12â€“16, Main Auditorium.',
+      link_text TEXT DEFAULT 'Register Now â†’',
       link_url TEXT DEFAULT '/events',
       accent_color TEXT DEFAULT 'green',
       updated_at TEXT DEFAULT (datetime('now'))
@@ -90,7 +90,7 @@ export async function migrate() {
       banner_image TEXT,
       body_content TEXT NOT NULL,
       highlights TEXT,
-      cta_text TEXT DEFAULT 'Learn More →',
+      cta_text TEXT DEFAULT 'Learn More â†’',
       cta_url TEXT DEFAULT 'https://nacos-bells.vercel.app',
       template TEXT DEFAULT 'event',
       recipient_count INTEGER DEFAULT 0,
@@ -119,11 +119,31 @@ export async function migrate() {
       level TEXT DEFAULT '100 Level',
       created_at TEXT DEFAULT (datetime('now'))
     )`,
+    `CREATE TABLE IF NOT EXISTS forms (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      description TEXT,
+      fields TEXT NOT NULL DEFAULT '[]',
+      status TEXT DEFAULT 'draft',
+      submission_count INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS form_submissions (
+      id TEXT PRIMARY KEY,
+      form_id TEXT NOT NULL,
+      data TEXT NOT NULL,
+      submitter_ip TEXT,
+      fingerprint TEXT,
+      submitted_at TEXT DEFAULT (datetime('now'))
+    )`,
   ];
 
   for (const stmt of statements) {
     await client.execute(stmt);
   }
 
-  console.log('✅ Database tables created / verified.');
+  console.log('âœ… Database tables created / verified.');
 }
+

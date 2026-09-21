@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+﻿import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Header from './components/Header';
@@ -20,6 +20,7 @@ const Portal = lazy(() => import('./pages/Portal'));
 const Study = lazy(() => import('./pages/Study'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const FormPublic = lazy(() => import('./pages/FormPublic'));
 
 // Page loading fallback
 const PageLoader = () => (
@@ -56,6 +57,7 @@ function AnimatedRoutes() {
             <Route path="/portal" element={<Portal />} />
             <Route path="/study" element={<Study />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/forms/:slug" element={<FormPublic />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -78,3 +80,4 @@ const App = () => (
 );
 
 export default App;
+

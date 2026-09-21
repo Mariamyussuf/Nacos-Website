@@ -141,5 +141,26 @@ export const eventRegistrations = sqliteTable('event_registrations', {
   createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
+// ─── Custom Forms (Form Builder) ────────────────────────────────────────────
 
+export const forms = sqliteTable('forms', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  slug: text('slug').unique().notNull(),
+  description: text('description'),
+  fields: text('fields').notNull().default('[]'), // JSON array of field defs
+  status: text('status').default('draft'), // "draft" | "published" | "closed"
+  submissionCount: integer('submission_count').default(0),
+  createdAt: text('created_at').default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').default(sql`(datetime('now'))`),
+});
+
+export const formSubmissions = sqliteTable('form_submissions', {
+  id: text('id').primaryKey(),
+  formId: text('form_id').notNull(),
+  data: text('data').notNull(), // JSON of { fieldId: value } pairs
+  submitterIp: text('submitter_ip'),
+  fingerprint: text('fingerprint'), // hash for duplicate detection
+  submittedAt: text('submitted_at').default(sql`(datetime('now'))`),
+});
 

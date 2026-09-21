@@ -12,6 +12,7 @@ export default function AdminSidebar({
     { id: "blogs", label: "Manage Blogs", icon: "ti ti-news" },
     { id: "events", label: "Manage Events", icon: "ti ti-calendar-event" },
     { id: "resources", label: "Manage Resources", icon: "ti ti-books" },
+    { id: "forms", label: "Form Builder", icon: "ti ti-forms" },
     { id: "banner", label: "Site Banner", icon: "ti ti-speakerphone" },
     { id: "subscribers", label: "Newsletter Studio", icon: "ti ti-mail" },
     {
@@ -70,4 +71,3 @@ export default function AdminSidebar({
     </aside>
   );
 }
-
