@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
-import * as nodemailer from 'nodemailer';
 import { getDb } from '../database/db';
 import { bannerSettings, newsletterCampaigns, subscribers } from '../database/schema';
 
@@ -29,28 +28,51 @@ export interface BroadcastCampaignDto {
 
 @Injectable()
 export class NewsletterService {
-  private transporter: nodemailer.Transporter | null = null;
-
   constructor() {
-    this.initTransporter();
+    const apiKey = process.env.SENDBYTE_API_KEY;
+    if (apiKey) {
+      console.log('📧 Sendbyte email API configured.');
+    } else {
+      console.log('ℹ️  SENDBYTE_API_KEY not set. Running in simulated email broadcast mode.');
+    }
   }
 
-  private initTransporter() {
-    const host = process.env.SMTP_HOST;
-    const port = parseInt(process.env.SMTP_PORT || '587', 10);
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+  // ─── Sendbyte HTTP API Helper ──────────────────────────────────────────────
 
-    if (host && user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
+  private async sendViaSendbyte(to: string | string[], subject: string, html: string): Promise<boolean> {
+    const apiKey = process.env.SENDBYTE_API_KEY;
+    const from = process.env.SENDBYTE_FROM || 'bellsnacos@gmail.com';
+    const fromName = process.env.SENDBYTE_FROM_NAME || 'NACOS Bells Chapter';
+
+    if (!apiKey) return false;
+
+    const recipients = Array.isArray(to) ? to : [to];
+
+    try {
+      const response = await fetch('https://api.sendbyte.africa/v1/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `${fromName} <${from}>`,
+          to: recipients,
+          subject,
+          html,
+        }),
       });
-      console.log('📧 SMTP Mail transporter initialized.');
-    } else {
-      console.log('ℹ️  SMTP credentials not set. Running in development/simulated email broadcast mode.');
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`Sendbyte API error ${response.status}:`, errorBody);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Sendbyte fetch error:', err);
+      return false;
     }
   }
 
@@ -275,24 +297,18 @@ export class NewsletterService {
     const recipientEmails = subList.map((s) => s.email);
 
     const htmlContent = this.generatePromotionalHtml(dto);
-    const fromAddress = process.env.SMTP_FROM || 'NACOS Bells Chapter <nacos@bellsuniversity.edu.ng>';
 
     let deliveredCount = 0;
     let status: 'sent' | 'failed' | 'test' = 'sent';
 
-    if (this.transporter && recipientEmails.length > 0) {
-      try {
-        await this.transporter.sendMail({
-          from: fromAddress,
-          bcc: recipientEmails, // send via BCC for privacy
-          subject: dto.subject,
-          html: htmlContent,
-        });
-        deliveredCount = recipientEmails.length;
-      } catch (err) {
-        console.error('Failed to send broadcast emails via SMTP:', err);
-        status = 'failed';
+    if (process.env.SENDBYTE_API_KEY && recipientEmails.length > 0) {
+      // Send individually to preserve recipient privacy (no BCC exposure)
+      let failCount = 0;
+      for (const email of recipientEmails) {
+        const ok = await this.sendViaSendbyte(email, dto.subject, htmlContent);
+        if (ok) deliveredCount++; else failCount++;
       }
+      if (failCount > 0 && deliveredCount === 0) status = 'failed';
     } else {
       // Simulated / dev dispatch
       console.log(`📡 [Dev Mode] Simulated broadcast of "${dto.subject}" to ${recipientEmails.length} subscribers.`);
@@ -330,18 +346,11 @@ export class NewsletterService {
 
   async sendTestEmail(dto: BroadcastCampaignDto, recipientEmail: string) {
     const htmlContent = this.generatePromotionalHtml(dto);
-    const fromAddress = process.env.SMTP_FROM || 'NACOS Bells Chapter <nacos@bellsuniversity.edu.ng>';
 
-    if (this.transporter) {
-      try {
-        await this.transporter.sendMail({
-          from: fromAddress,
-          to: recipientEmail,
-          subject: `[TEST] ${dto.subject}`,
-          html: htmlContent,
-        });
-      } catch (err: any) {
-        throw new InternalServerErrorException(`Failed to send test email: ${err.message}`);
+    if (process.env.SENDBYTE_API_KEY) {
+      const ok = await this.sendViaSendbyte(recipientEmail, `[TEST] ${dto.subject}`, htmlContent);
+      if (!ok) {
+        throw new InternalServerErrorException('Failed to send test email via Sendbyte. Check your API key and logs.');
       }
     } else {
       console.log(`📡 [Dev Mode] Simulated test email sent to "${recipientEmail}".`);
