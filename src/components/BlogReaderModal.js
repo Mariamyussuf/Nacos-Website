@@ -7,29 +7,26 @@ export default function BlogReaderModal({ post, isOpen, onClose }) {
   const showToast = useToast();
   const [isSaved, setIsSaved] = useState(false);
   const [readProgress, setReadProgress] = useState(0);
-  const scrollContainerRef = useRef(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     if (!post) return;
     try {
       const saved = JSON.parse(localStorage.getItem("saved_blogs") || "[]");
       setIsSaved(saved.some((item) => (item.id || item.title) === (post.id || post.title)));
-    } catch (e) {
-      setIsSaved(false);
-    }
+    } catch (e) { setIsSaved(false); }
     setReadProgress(0);
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [post]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handleKey = (e) => { if (e.key === "Escape") onClose(); };
     if (isOpen) {
-      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("keydown", handleKey);
       document.body.style.overflow = "hidden";
     }
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
@@ -37,251 +34,307 @@ export default function BlogReaderModal({ post, isOpen, onClose }) {
   if (!isOpen || !post) return null;
 
   const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
     const maxScroll = scrollHeight - clientHeight;
-    if (maxScroll <= 0) {
-      setReadProgress(100);
-      return;
-    }
-    const currentProgress = Math.min(100, Math.max(0, Math.round((scrollTop / maxScroll) * 100)));
-    setReadProgress(currentProgress);
+    if (maxScroll <= 0) { setReadProgress(100); return; }
+    setReadProgress(Math.min(100, Math.round((scrollTop / maxScroll) * 100)));
   };
 
   const toggleSave = () => {
     try {
       const saved = JSON.parse(localStorage.getItem("saved_blogs") || "[]");
-      const postKey = post.id || post.title;
-      const exists = saved.some((item) => (item.id || item.title) === postKey);
-      let updated;
-      if (exists) {
-        updated = saved.filter((item) => (item.id || item.title) !== postKey);
-        setIsSaved(false);
-        showToast("Article removed from saved bookmarks", "info");
-      } else {
-        updated = [...saved, post];
-        setIsSaved(true);
-        showToast("Article saved to your bookmarks!", "success");
-      }
+      const key = post.id || post.title;
+      const exists = saved.some((item) => (item.id || item.title) === key);
+      const updated = exists
+        ? saved.filter((item) => (item.id || item.title) !== key)
+        : [...saved, post];
       localStorage.setItem("saved_blogs", JSON.stringify(updated));
-    } catch (e) {
-      showToast("Could not update bookmarks", "error");
-    }
+      setIsSaved(!exists);
+      showToast(exists ? "Removed from bookmarks" : "Article saved to bookmarks!", exists ? "info" : "success");
+    } catch (e) { showToast("Could not update bookmarks", "error"); }
   };
 
-  const getShareUrl = () => `${window.location.origin}/blog#${post.id || encodeURIComponent(post.title)}`;
+  const getShareUrl = () =>
+    `${window.location.origin}/blog#${post.id || encodeURIComponent(post.title)}`;
 
-  const copyArticleLink = () => {
+  const copyLink = () => {
     navigator.clipboard.writeText(getShareUrl());
-    showToast("Article link copied to clipboard!", "success");
+    showToast("Article link copied!", "success");
   };
 
   const shareWhatsApp = () => {
-    const text = `📖 Read "${post.title}" on the NACOS Bells Chapter Blog:\n${getShareUrl()}`;
+    const text = `📖 "${post.title}" — NACOS Bells Blog:\n${getShareUrl()}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const shareTwitter = () => {
-    const text = `Check out "${post.title}" published by @nacosbells 🚀`;
-    const url = getShareUrl();
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(`"${post.title}" by @nacosbells`)}&url=${encodeURIComponent(getShareUrl())}`,
+      "_blank"
+    );
   };
 
   const shareLinkedIn = () => {
-    const url = getShareUrl();
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank");
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(getShareUrl())}`, "_blank");
   };
 
-  // Helper to render formatted markdown-like content blocks
-  const renderFormattedContent = (contentStr) => {
-    if (!contentStr) return <p className="text-[#888880] text-sm font-light leading-relaxed">{post.excerpt}</p>;
+  // ── Markdown-like renderer ────────────────────────────────────────────────
+
+  const renderContent = (contentStr) => {
+    if (!contentStr) return <p className="text-[#9A9790] text-lg leading-[1.85] font-light">{post.excerpt}</p>;
 
     const lines = contentStr.split("\n");
     const elements = [];
-    let currentList = [];
+    let listItems = [];
+    let listType = null; // "ul" | "ol"
+
+    const flushList = (key) => {
+      if (!listItems.length) return;
+      const Tag = listType === "ol" ? "ol" : "ul";
+      elements.push(
+        <Tag
+          key={key}
+          className={`mb-6 pl-6 space-y-2 text-[#9A9790] text-[16.5px] leading-[1.85] font-light ${listType === "ol" ? "list-decimal" : "list-disc"}`}
+        >
+          {listItems.map((item, i) => (
+            <li key={i} className="leading-relaxed">{item}</li>
+          ))}
+        </Tag>
+      );
+      listItems = [];
+      listType = null;
+    };
 
     lines.forEach((line, idx) => {
       const trimmed = line.trim();
+
       if (!trimmed) {
-        if (currentList.length > 0) {
-          elements.push(
-            <ul key={`list-${idx}`} className="space-y-2 mb-5 pl-5 list-disc text-[#888880] text-sm font-light leading-relaxed">
-              {currentList.map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ul>
-          );
-          currentList = [];
-        }
+        flushList(`list-${idx}`);
         return;
       }
 
-      if (trimmed.startsWith("### ")) {
+      // Headings
+      if (trimmed.startsWith("#### ")) {
+        flushList(`list-${idx}`);
         elements.push(
-          <h3 key={idx} className="font-display font-medium text-lg sm:text-xl text-[#F0EDE6] mt-6 mb-3 text-white">
-            {trimmed.replace("### ", "")}
+          <h4 key={idx} className="font-display font-semibold text-lg text-[#F0EDE6] mt-8 mb-3">
+            {trimmed.slice(5)}
+          </h4>
+        );
+      } else if (trimmed.startsWith("### ")) {
+        flushList(`list-${idx}`);
+        elements.push(
+          <h3 key={idx} className="font-display font-semibold text-xl sm:text-2xl text-[#F0EDE6] mt-10 mb-4">
+            {trimmed.slice(4)}
           </h3>
         );
       } else if (trimmed.startsWith("## ")) {
+        flushList(`list-${idx}`);
         elements.push(
-          <h2 key={idx} className="font-display font-medium text-xl sm:text-2xl text-[#F0EDE6] mt-8 mb-4 text-white">
-            {trimmed.replace("## ", "")}
+          <h2 key={idx} className="font-display font-semibold text-2xl sm:text-3xl text-white mt-12 mb-5 pb-3 border-b border-[rgba(255,255,255,0.07)]">
+            {trimmed.slice(3)}
           </h2>
         );
+      } else if (trimmed.startsWith("# ")) {
+        flushList(`list-${idx}`);
+        elements.push(
+          <h1 key={idx} className="font-display font-bold text-3xl text-white mt-12 mb-6">
+            {trimmed.slice(2)}
+          </h1>
+        );
+      // Blockquote
       } else if (trimmed.startsWith("> ")) {
+        flushList(`list-${idx}`);
         elements.push(
           <blockquote
             key={idx}
-            className="my-5 p-4 rounded-lg bg-[#1A1A17] border-l-4 border-[#2D7A22] text-[#F0EDE6] text-sm italic font-light leading-relaxed"
+            className="my-8 pl-5 border-l-4 border-[#2D7A22] bg-[#2D7A22]/5 rounded-r-xl py-4 pr-5"
           >
-            {trimmed.replace("> ", "")}
+            <p className="text-[#C8C5BE] text-lg italic font-light leading-relaxed">
+              {trimmed.slice(2)}
+            </p>
           </blockquote>
         );
-      } else if (trimmed.startsWith("1. ") || trimmed.startsWith("2. ") || trimmed.startsWith("3. ") || trimmed.startsWith("4. ") || trimmed.startsWith("5. ") || trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-        currentList.push(trimmed.replace(/^(\d+\.|-|\*)\s*/, ""));
-      } else {
+      // Code block (single line with backtick)
+      } else if (trimmed.startsWith("`") && trimmed.endsWith("`") && trimmed.length > 2) {
+        flushList(`list-${idx}`);
         elements.push(
-          <p key={idx} className="text-[#888880] text-sm sm:text-[15px] font-light leading-relaxed mb-4">
-            {trimmed}
-          </p>
+          <code key={idx} className="block my-4 px-5 py-3.5 rounded-xl bg-[#0E0E0C] border border-[rgba(255,255,255,0.07)] text-[#4ade80] text-sm font-mono leading-relaxed whitespace-pre-wrap">
+            {trimmed.slice(1, -1)}
+          </code>
+        );
+      // Horizontal rule
+      } else if (trimmed === "---" || trimmed === "***") {
+        flushList(`list-${idx}`);
+        elements.push(<hr key={idx} className="my-10 border-[rgba(255,255,255,0.07)]" />);
+      // Unordered list
+      } else if (/^[-*•]\s/.test(trimmed)) {
+        if (listType !== "ul") { flushList(`list-before-${idx}`); listType = "ul"; }
+        listItems.push(trimmed.replace(/^[-*•]\s+/, ""));
+      // Ordered list
+      } else if (/^\d+\.\s/.test(trimmed)) {
+        if (listType !== "ol") { flushList(`list-before-${idx}`); listType = "ol"; }
+        listItems.push(trimmed.replace(/^\d+\.\s+/, ""));
+      // Bold text check for paragraph inline bold
+      } else {
+        flushList(`list-${idx}`);
+        // Parse inline **bold** and *italic*
+        const parsed = trimmed
+          .replace(/\*\*(.+?)\*\*/g, '<strong class="text-[#F0EDE6] font-semibold">$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em class="italic text-[#C8C5BE]">$1</em>');
+        elements.push(
+          <p
+            key={idx}
+            className="text-[#9A9790] text-[16.5px] leading-[1.85] font-light mb-5"
+            dangerouslySetInnerHTML={{ __html: parsed }}
+          />
         );
       }
     });
 
-    if (currentList.length > 0) {
-      elements.push(
-        <ul key="list-end" className="space-y-2 mb-5 pl-5 list-disc text-[#888880] text-sm font-light leading-relaxed">
-          {currentList.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-
+    flushList("list-final");
     return elements;
   };
 
+  const coverImage = resolveAssetUrl(post.image);
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md"
-        />
+      {/* Full-screen overlay */}
+      <motion.div
+        key="blog-reader"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 z-50 bg-[#0A0A08] flex flex-col"
+      >
+        {/* ── Reading progress bar ─────────────────────────────────────── */}
+        <div className="fixed top-0 left-0 right-0 h-[2px] z-50 bg-[rgba(255,255,255,0.04)]">
+          <motion.div
+            className="h-full bg-[#2D7A22] shadow-[0_0_12px_#2D7A22]"
+            style={{ width: `${readProgress}%` }}
+            transition={{ duration: 0.1 }}
+          />
+        </div>
 
-        {/* Modal Window */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 20 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="relative w-full max-w-3xl bg-[#111110] border border-[rgba(255,255,255,0.1)] rounded-2xl shadow-2xl overflow-hidden z-10 my-8 max-h-[90vh] flex flex-col"
-        >
-          {/* Scroll Reading Progress Bar along top edge */}
-          <div className="w-full bg-[rgba(255,255,255,0.05)] h-1 sticky top-0 z-30 overflow-hidden">
-            <div
-              className="h-full bg-[#2D7A22] shadow-[0_0_10px_#2D7A22] transition-all duration-150 ease-out"
-              style={{ width: `${readProgress}%` }}
-            />
-          </div>
-
-          {/* Top Bar / Header Action Controls */}
-          <div className="flex items-center justify-between px-5 sm:px-8 py-3.5 border-b border-[rgba(255,255,255,0.07)] bg-[#111110]/95 backdrop-blur-sm sticky top-1 z-20">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2D7A22]/15 text-[#3A9C2D] border border-[#2D7A22]/30 text-[10px] sm:text-xs uppercase tracking-widest font-medium">
+        {/* ── Top navigation bar ───────────────────────────────────────── */}
+        <div className="fixed top-0 left-0 right-0 z-40 bg-[#0A0A08]/90 backdrop-blur-xl border-b border-[rgba(255,255,255,0.06)]">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+            {/* Left: Back + category */}
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={onClose}
+                className="flex items-center gap-1.5 text-[#888880] hover:text-white text-xs transition-colors shrink-0 group"
+              >
+                <i className="ti ti-arrow-left group-hover:-translate-x-0.5 transition-transform" />
+                <span className="hidden sm:inline">Blog</span>
+              </button>
+              <div className="w-px h-4 bg-[rgba(255,255,255,0.1)]" />
+              <span className="px-2.5 py-0.5 rounded-full bg-[#2D7A22]/15 text-[#4ade80] border border-[#2D7A22]/30 text-[10px] uppercase tracking-widest font-medium truncate">
                 {post.category}
               </span>
-              <span className="text-[#888880] text-xs font-light">· {post.readTime}</span>
-              {readProgress > 0 && (
-                <span className="hidden sm:inline-block text-[10px] text-[#2D7A22] bg-[#2D7A22]/10 border border-[#2D7A22]/20 px-2 py-0.5 rounded font-mono">
-                  {readProgress}% read
+              {readProgress > 2 && (
+                <span className="hidden sm:inline text-[10px] text-[#555550] font-mono">
+                  {readProgress}%
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              {/* Bookmark button */}
+            {/* Right: Actions */}
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={toggleSave}
-                title={isSaved ? "Remove from bookmarks" : "Save article"}
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border transition-all ${
+                title={isSaved ? "Remove bookmark" : "Save article"}
+                className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all text-sm ${
                   isSaved
-                    ? "bg-[#2D7A22] text-white border-[#2D7A22]"
-                    : "bg-white/[0.04] text-[#888880] hover:text-white border-[rgba(255,255,255,0.07)]"
+                    ? "bg-[#2D7A22] border-[#2D7A22] text-white"
+                    : "border-[rgba(255,255,255,0.08)] text-[#888880] hover:text-white hover:border-[rgba(255,255,255,0.2)]"
                 }`}
               >
-                <i className={isSaved ? "ti ti-bookmark-filled text-sm" : "ti ti-bookmark text-sm"} />
+                <i className={isSaved ? "ti ti-bookmark-filled" : "ti ti-bookmark"} />
               </button>
-
-              {/* Share link button */}
               <button
-                onClick={copyArticleLink}
-                title="Copy Article Link"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] flex items-center justify-center transition-all"
+                onClick={copyLink}
+                title="Copy link"
+                className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgba(255,255,255,0.08)] text-[#888880] hover:text-white hover:border-[rgba(255,255,255,0.2)] transition-all text-sm"
               >
-                <i className="ti ti-link text-sm" />
+                <i className="ti ti-link" />
               </button>
-
-              {/* Close button */}
               <button
                 onClick={onClose}
-                title="Close Reader"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.07)] flex items-center justify-center transition-all ml-1"
+                className="w-8 h-8 rounded-full flex items-center justify-center border border-[rgba(255,255,255,0.08)] text-[#888880] hover:text-white hover:border-[rgba(255,255,255,0.2)] transition-all text-sm ml-1"
               >
-                <i className="ti ti-x text-sm" />
+                <i className="ti ti-x" />
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Scrollable Reader Content */}
-          <div
-            ref={scrollContainerRef}
-            onScroll={handleScroll}
-            className="overflow-y-auto px-5 sm:px-8 md:px-10 py-6 sm:py-8 space-y-6 flex-1"
-          >
-            {/* Title & Author Info */}
-            <div>
-              <h1 className="font-display font-medium text-2xl sm:text-3xl md:text-4xl text-[#F0EDE6] text-white leading-tight mb-4">
-                {post.title}
-              </h1>
+        {/* ── Scrollable article body ───────────────────────────────────── */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto pt-14"
+        >
+          {/* Hero cover image */}
+          {coverImage && (
+            <div className="w-full h-64 sm:h-80 md:h-[440px] overflow-hidden relative">
+              <img
+                src={coverImage}
+                alt={post.title}
+                className="w-full h-full object-cover"
+              />
+              {/* gradient fade to body */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0A0A08]" />
+            </div>
+          )}
 
-              <div className="flex items-center gap-3 py-3 border-y border-[rgba(255,255,255,0.07)]">
-                <div className="w-10 h-10 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex items-center justify-center text-sm font-medium text-[#2D7A22]">
-                  {post.author?.[0] || "N"}
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-[#F0EDE6] text-white">{post.author}</h4>
-                  <p className="text-xs text-[#888880] font-light">
-                    {post.authorRole || "NACOS Contributor"} · Published on {post.date}
-                  </p>
-                </div>
-              </div>
+          {/* Article container */}
+          <div className="max-w-2xl mx-auto px-5 sm:px-6 pb-24">
+            {/* Category + read time pill */}
+            <div className="flex items-center gap-3 mt-10 mb-5">
+              <span className="text-[10px] uppercase tracking-widest text-[#888880] font-medium">{post.readTime}</span>
+              <span className="text-[rgba(255,255,255,0.12)]">·</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#888880] font-medium">{post.date}</span>
             </div>
 
-            {/* Cover Image (if available) */}
-            {post.image && (
-              <div className="w-full h-56 sm:h-80 rounded-xl overflow-hidden border border-[rgba(255,255,255,0.07)]">
-                <img src={resolveAssetUrl(post.image)} alt={post.title} className="w-full h-full object-cover" />
-              </div>
+            {/* Title */}
+            <h1 className="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-white leading-tight mb-6 tracking-tight">
+              {post.title}
+            </h1>
+
+            {/* Excerpt / lede */}
+            {post.excerpt && (
+              <p className="text-[#888880] text-lg sm:text-xl leading-relaxed font-light mb-8 border-l-2 border-[#2D7A22]/40 pl-4">
+                {post.excerpt}
+              </p>
             )}
 
-            {/* Formatted Article Body */}
-            <div className="article-body">
-              {renderFormattedContent(post.content || post.excerpt)}
+            {/* Author card */}
+            <div className="flex items-center gap-3 py-4 border-y border-[rgba(255,255,255,0.07)] mb-10">
+              <div className="w-10 h-10 rounded-full bg-[#2D7A22]/15 border border-[#2D7A22]/25 flex items-center justify-center text-sm font-semibold text-[#4ade80] shrink-0">
+                {post.author?.[0]?.toUpperCase() || "N"}
+              </div>
+              <div>
+                <p className="text-[#F0EDE6] text-sm font-medium leading-tight">{post.author}</p>
+                <p className="text-[#666660] text-xs font-light mt-0.5">{post.authorRole || "NACOS Contributor"}</p>
+              </div>
             </div>
 
-            {/* Tags Strip */}
+            {/* Article body */}
+            <div className="article-body">
+              {renderContent(post.content || post.excerpt)}
+            </div>
+
+            {/* Tags */}
             {post.tags && post.tags.length > 0 && (
-              <div className="pt-4 border-t border-[rgba(255,255,255,0.07)] flex flex-wrap items-center gap-2">
-                <span className="text-xs text-[#888880] mr-1">Tags:</span>
+              <div className="mt-12 pt-6 border-t border-[rgba(255,255,255,0.07)] flex flex-wrap gap-2">
                 {post.tags.map((tag, i) => (
                   <span
                     key={i}
-                    className="px-2.5 py-0.5 rounded-md bg-[#1A1A17] text-xs text-[#888880] border border-[rgba(255,255,255,0.07)]"
+                    className="px-3 py-1 rounded-full bg-[#1A1A17] border border-[rgba(255,255,255,0.08)] text-xs text-[#888880]"
                   >
                     #{tag}
                   </span>
@@ -289,62 +342,50 @@ export default function BlogReaderModal({ post, isOpen, onClose }) {
               </div>
             )}
 
-            {/* Social Share & Engagement Bar */}
-            <div className="p-4 sm:p-5 rounded-xl bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h4 className="text-sm font-medium text-[#F0EDE6] text-white mb-0.5">Found this article valuable?</h4>
-                <p className="text-xs text-[#888880] font-light">Share it with your classmates and fellow computing students.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+            {/* Share footer */}
+            <div className="mt-10 p-5 sm:p-6 rounded-2xl bg-[#111110] border border-[rgba(255,255,255,0.07)]">
+              <p className="text-[#F0EDE6] text-sm font-medium mb-1">Found this useful?</p>
+              <p className="text-[#666660] text-xs mb-4 font-light">Share it with your classmates and fellow computing students.</p>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  type="button"
                   onClick={shareWhatsApp}
-                  className="px-3 py-1.5 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
-                  title="Share on WhatsApp"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/25 text-xs font-medium transition-all"
                 >
                   <i className="ti ti-brand-whatsapp text-sm" /> WhatsApp
                 </button>
                 <button
-                  type="button"
                   onClick={shareTwitter}
-                  className="px-3 py-1.5 rounded-lg bg-[#1DA1F2]/15 hover:bg-[#1DA1F2]/25 text-[#1DA1F2] border border-[#1DA1F2]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
-                  title="Share on X / Twitter"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 text-[#1DA1F2] border border-[#1DA1F2]/25 text-xs font-medium transition-all"
                 >
-                  <i className="ti ti-brand-twitter text-sm" /> X
+                  <i className="ti ti-brand-twitter text-sm" /> X / Twitter
                 </button>
                 <button
-                  type="button"
                   onClick={shareLinkedIn}
-                  className="px-3 py-1.5 rounded-lg bg-[#0A66C2]/15 hover:bg-[#0A66C2]/25 text-[#70B5F9] border border-[#0A66C2]/30 text-xs font-medium flex items-center gap-1.5 transition-all"
-                  title="Share on LinkedIn"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#70B5F9] border border-[#0A66C2]/25 text-xs font-medium transition-all"
                 >
                   <i className="ti ti-brand-linkedin text-sm" /> LinkedIn
                 </button>
                 <button
-                  type="button"
-                  onClick={copyArticleLink}
-                  className="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[#F0EDE6] border border-[rgba(255,255,255,0.1)] text-xs font-medium flex items-center gap-1.5 transition-all"
-                  title="Copy Link"
+                  onClick={copyLink}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[#888880] hover:text-white border border-[rgba(255,255,255,0.08)] text-xs font-medium transition-all"
                 >
-                  <i className="ti ti-link text-sm" /> Copy
+                  <i className="ti ti-copy text-sm" /> Copy Link
                 </button>
               </div>
             </div>
 
+            {/* Back button */}
+            <div className="mt-8 text-center">
+              <button
+                onClick={onClose}
+                className="inline-flex items-center gap-2 text-[#555550] hover:text-[#888880] text-xs transition-colors"
+              >
+                <i className="ti ti-arrow-left text-xs" /> Back to all articles
+              </button>
+            </div>
           </div>
-
-          {/* Footer Close Action */}
-          <div className="px-5 sm:px-8 py-3.5 border-t border-[rgba(255,255,255,0.07)] bg-[#111110] flex justify-between items-center text-xs text-[#888880]">
-            <span>NACOS Bells Publications · College of Computing</span>
-            <button
-              onClick={onClose}
-              className="px-4 py-1.5 rounded bg-white/[0.05] hover:bg-white/[0.1] text-[#F0EDE6] border border-[rgba(255,255,255,0.08)] transition-all font-normal"
-            >
-              Back to Blog
-            </button>
-          </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </AnimatePresence>
   );
 }
