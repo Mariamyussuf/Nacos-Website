@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getPublicForm, submitForm } from "../components/api";
+import CaptchaWidget from "../components/CaptchaWidget";
 
 function PublicField({ field, value, onChange, onFileChange, error }) {
   const inputBase =
@@ -145,6 +146,7 @@ export default function FormPublic() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [captcha, setCaptcha] = useState(null);
 
   const topRef = useRef(null);
 
@@ -176,6 +178,12 @@ export default function FormPublic() {
         }
       }
     }
+
+    // CAPTCHA validation
+    if (!captcha || !captcha.answer) {
+      errors['_captcha'] = "Please solve the security verification puzzle before submitting";
+    }
+
     return errors;
   };
 
@@ -193,7 +201,7 @@ export default function FormPublic() {
 
     setSubmitting(true);
     try {
-      await submitForm(form.id, values, fileValues);
+      await submitForm(form.id, values, fileValues, captcha);
       setSubmitted(true);
       topRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (err) {
@@ -320,6 +328,16 @@ export default function FormPublic() {
                 )}
               </div>
             ))}
+
+            {/* Anti-Bot Security Puzzle */}
+            <div className="pt-2">
+              <CaptchaWidget onVerified={setCaptcha} className="mb-2" />
+              {fieldErrors['_captcha'] && (
+                <p className="mb-3 text-xs text-red-400 flex items-center gap-1.5">
+                  <i className="ti ti-alert-circle" /> {fieldErrors['_captcha']}
+                </p>
+              )}
+            </div>
 
             <button
               type="submit"

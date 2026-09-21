@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "../components/Toast";
 import { sendContactMessage } from "../components/api";
+import CaptchaWidget from "../components/CaptchaWidget";
 
 const InfoCard = ({ icon, title, lines }) => (
   <motion.div
@@ -24,6 +25,7 @@ const InfoCard = ({ icon, title, lines }) => (
 const Contact = () => {
   const showToast = useToast();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [captcha, setCaptcha] = useState(null);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,10 +40,14 @@ const Contact = () => {
       setError("Please fill in all required fields.");
       return;
     }
+    if (!captcha || !captcha.token || !captcha.answer) {
+      setError("Please complete the security verification challenge.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const res = await sendContactMessage(form);
+      const res = await sendContactMessage(form, captcha);
       showToast(res.message || "Message sent successfully! We'll get back to you soon.", "success");
       setSent(true);
     } catch (err) {
@@ -51,6 +57,7 @@ const Contact = () => {
       setLoading(false);
     }
   };
+
 
 
   return (
@@ -176,6 +183,8 @@ const Contact = () => {
                     required
                   />
                 </div>
+
+                <CaptchaWidget onVerified={setCaptcha} className="my-2" />
 
                 <button
                   type="submit"

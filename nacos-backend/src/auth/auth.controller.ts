@@ -7,12 +7,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { LoginAuthGuard } from './guards/login.guard';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 
 @Controller('auth')
 export class AuthController {
-  @UseGuards(AuthGuard('local'))
+  @UseGuards(LoginAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Request() req: any) {

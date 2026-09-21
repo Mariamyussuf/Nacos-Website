@@ -202,14 +202,76 @@ export class FormsService {
       throw new BadRequestException('This form is not currently accepting responses');
     }
 
+    // Validate payload size cap
+    if (JSON.stringify(data).length > 50000) {
+      throw new BadRequestException('Form submission data payload exceeds maximum allowed size (50 KB)');
+    }
+
     const fields: any[] = form.fields ? JSON.parse(form.fields) : [];
 
-    // Validate required fields
+    // Comprehensive field-level validations
     for (const field of fields) {
-      if (field.required && field.type !== 'file') {
-        const val = data[field.id];
-        if (val === undefined || val === null || String(val).trim() === '') {
-          throw new BadRequestException(`Field "${field.label}" is required`);
+      const val = data[field.id];
+      const isProvided = val !== undefined && val !== null && String(val).trim() !== '';
+
+      // 1. Required field check
+      if (field.required && field.type !== 'file' && !isProvided) {
+        throw new BadRequestException(`Field "${field.label}" is required`);
+      }
+
+      // If value is provided, enforce type constraints
+      if (isProvided) {
+        // Email validation
+        if (field.type === 'email') {
+          const emailStr = String(val).trim();
+          const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          if (!emailRegex.test(emailStr) || emailStr.length > 150) {
+            throw new BadRequestException(`Field "${field.label}" must be a valid email address`);
+          }
+        }
+
+        // Numeric validation
+        if (field.type === 'number') {
+          const num = Number(val);
+          if (isNaN(num) || !isFinite(num)) {
+            throw new BadRequestException(`Field "${field.label}" must be a valid numeric value`);
+          }
+        }
+
+        // Short text length cap
+        if (field.type === 'text') {
+          if (String(val).length > 255) {
+            throw new BadRequestException(`Field "${field.label}" exceeds maximum length of 255 characters`);
+          }
+        }
+
+        // Long text / textarea length cap
+        if (field.type === 'textarea') {
+          if (String(val).length > 5000) {
+            throw new BadRequestException(`Field "${field.label}" exceeds maximum length of 5,000 characters`);
+          }
+        }
+
+        // Select / Dropdown & Radio option whitelisting
+        if (field.type === 'select' || field.type === 'radio') {
+          const options = Array.isArray(field.options) ? field.options : [];
+          if (options.length > 0 && !options.includes(String(val))) {
+            throw new BadRequestException(
+              `Invalid selection for "${field.label}". Allowed options: ${options.join(', ')}`,
+            );
+          }
+        }
+
+        // Checkboxes option whitelisting
+        if (field.type === 'checkboxes') {
+          const selected = Array.isArray(val) ? val : [val];
+          const options = Array.isArray(field.options) ? field.options : [];
+          if (options.length > 0) {
+            const hasInvalid = selected.some((item) => !options.includes(String(item)));
+            if (hasInvalid) {
+              throw new BadRequestException(`Invalid selection for checkboxes "${field.label}"`);
+            }
+          }
         }
       }
     }

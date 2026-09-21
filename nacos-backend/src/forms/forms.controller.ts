@@ -20,6 +20,8 @@ import { FormsService } from './forms.service';
 import { CreateFormDto, UpdateFormDto } from './dto/create-form.dto';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 
+import { CaptchaService } from '../captcha/captcha.service';
+
 // ── File storage for form file-upload fields ─────────────────────────────────
 
 const formFileStorage = diskStorage({
@@ -34,7 +36,10 @@ const ALLOWED_FORM_FILE_EXTS = /\.(jpg|jpeg|png|gif|webp|pdf|doc|docx|xlsx|csv|t
 
 @Controller('forms')
 export class FormsController {
-  constructor(private readonly formsService: FormsService) {}
+  constructor(
+    private readonly formsService: FormsService,
+    private readonly captchaService: CaptchaService,
+  ) {}
 
   // ── Admin-only routes (require session auth) ──────────────────────────────
 
@@ -144,6 +149,17 @@ export class FormsController {
       (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
       req.ip ||
       'unknown';
+
+    // Verify CAPTCHA (from headers or body)
+    const captchaToken = (req.headers['x-captcha-token'] as string) || body.captchaToken || data.captchaToken;
+    const captchaAnswer = (req.headers['x-captcha-answer'] as string) || body.captchaAnswer || data.captchaAnswer;
+
+    delete data.captchaToken;
+    delete data.captchaAnswer;
+
+    if (captchaToken || process.env.REQUIRE_CAPTCHA === 'true') {
+      this.captchaService.verify(captchaToken, captchaAnswer);
+    }
 
     return this.formsService.submit(id, data, ip, files);
   }

@@ -7,16 +7,22 @@ import {
   Param,
   Query,
   Body,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { RegisterAttendeeDto } from './dto/register-attendee.dto';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
+import { CaptchaService } from '../captcha/captcha.service';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly captchaService: CaptchaService,
+  ) {}
 
   @Get()
   findAll(
@@ -34,16 +40,18 @@ export class EventsController {
   @Post(':id/register')
   register(
     @Param('id') id: string,
-    @Body()
-    dto: {
-      fullName: string;
-      matricNumber: string;
-      email: string;
-      phone?: string;
-      department?: string;
-      level?: string;
-    },
+    @Body() dto: RegisterAttendeeDto,
+    @Req() req: any,
   ) {
+    const captchaToken =
+      (req.headers['x-captcha-token'] as string) || dto.captchaToken;
+    const captchaAnswer =
+      (req.headers['x-captcha-answer'] as string) || dto.captchaAnswer;
+
+    if (captchaToken || process.env.REQUIRE_CAPTCHA === 'true') {
+      this.captchaService.verify(captchaToken, captchaAnswer);
+    }
+
     return this.eventsService.registerAttendee(id, dto);
   }
 

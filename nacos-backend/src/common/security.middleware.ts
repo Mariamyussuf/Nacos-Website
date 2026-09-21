@@ -1,5 +1,62 @@
 import { Request, Response, NextFunction } from 'express';
 
+// ─── Strict CORS Configuration ───────────────────────────────────────────────
+
+export const DEFAULT_ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://nacos-bells.vercel.app',
+];
+
+export function getCorsOptions() {
+  const envOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  const allowedList = Array.from(new Set([...DEFAULT_ALLOWED_ORIGINS, ...envOrigins]));
+
+  return {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const isAllowed = allowedList.some((allowed) => {
+        if (allowed === origin) return true;
+        // Support subdomain wildcard (e.g. *.vercel.app)
+        if (allowed.startsWith('*.')) {
+          const domain = allowed.slice(2);
+          return origin.endsWith(`.${domain}`) || origin === `https://${domain}`;
+        }
+        return false;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy blocked access from origin: ${origin}`));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+      'X-RateLimit-Limit',
+      'X-Captcha-Token',
+      'X-Captcha-Answer',
+    ],
+    exposedHeaders: [
+      'X-RateLimit-Limit',
+      'X-RateLimit-Remaining',
+      'X-RateLimit-Reset',
+      'Retry-After',
+    ],
+    maxAge: 86400, // 24 hours pre-flight cache
+  };
+}
+
 // ─── Security Headers (HSTS, NoSniff, Clickjacking Defense) ─────────────────
 
 export function securityHeadersMiddleware(
@@ -37,24 +94,18 @@ export function securityHeadersMiddleware(
   next();
 }
 
-// ─── Sliding-Window Request Throttling & DDoS Defense ────────────────────────
+// ─── Tiered Sliding-Window Rate Limiter & Anti-DDoS ──────────────────────────
 
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 
-const generalRateLimitStore = new Map<string, RateLimitEntry>();
-const sensitiveRateLimitStore = new Map<string, RateLimitEntry>();
-
-// Sensitive endpoints with stricter limits
-const SENSITIVE_PATH_PATTERNS = [
-  /\/api\/auth\/login/i,
-  /\/api\/forms\/[^/]+\/submit/i,
-  /\/api\/subscribe/i,
-  /\/api\/contact/i,
-  /\/api\/newsletter\/send/i,
-];
+const authStore = new Map<string, RateLimitEntry>();
+const publicFormStore = new Map<string, RateLimitEntry>();
+const newsletterStore = new Map<string, RateLimitEntry>();
+const captchaStore = new Map<string, RateLimitEntry>();
+const generalStore = new Map<string, RateLimitEntry>();
 
 export function apiRateLimitMiddleware(
   req: Request,
@@ -63,24 +114,55 @@ export function apiRateLimitMiddleware(
 ): void {
   const ip =
     (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+    (req.headers['cf-connecting-ip'] as string) ||
     req.ip ||
     req.socket.remoteAddress ||
     'unknown';
 
   const now = Date.now();
-  const path = req.originalUrl || req.url;
+  const path = (req.originalUrl || req.url).toLowerCase();
 
-  const isSensitive = SENSITIVE_PATH_PATTERNS.some((pattern) =>
-    pattern.test(path),
-  );
+  let maxLimit = 150;
+  let windowMs = 60 * 1000; // 1 minute
+  let store = generalStore;
+  let category = 'general';
 
-  const windowMs = 60 * 1000; // 1 minute window
-  const maxLimit = isSensitive ? 20 : 150; // 20 req/min for sensitive, 150 for general
-  const store = isSensitive ? sensitiveRateLimitStore : generalRateLimitStore;
+  // Tier 1: Auth endpoints
+  if (path.includes('/api/auth/login')) {
+    maxLimit = 10;
+    windowMs = 10 * 60 * 1000; // 10 minutes
+    store = authStore;
+    category = 'auth';
+  }
+  // Tier 2: Public form submissions (dynamic forms, contact, event registrations)
+  else if (
+    path.includes('/submit') ||
+    path.includes('/contact') ||
+    path.includes('/register')
+  ) {
+    maxLimit = 10;
+    windowMs = 60 * 1000; // 1 minute
+    store = publicFormStore;
+    category = 'forms';
+  }
+  // Tier 3: Newsletter subscribe & campaign dispatch
+  else if (path.includes('/subscribe') || path.includes('/newsletter')) {
+    maxLimit = 5;
+    windowMs = 60 * 1000; // 1 minute
+    store = newsletterStore;
+    category = 'newsletter';
+  }
+  // Tier 4: CAPTCHA challenge requests
+  else if (path.includes('/captcha')) {
+    maxLimit = 30;
+    windowMs = 60 * 1000;
+    store = captchaStore;
+    category = 'captcha';
+  }
 
   const entry = store.get(ip) || { count: 0, resetAt: now + windowMs };
 
-  // If window has passed, reset counter
+  // Reset counter when window elapses
   if (now > entry.resetAt) {
     entry.count = 1;
     entry.resetAt = now + windowMs;
@@ -90,7 +172,6 @@ export function apiRateLimitMiddleware(
 
   store.set(ip, entry);
 
-  // Set rate limit headers
   const remaining = Math.max(0, maxLimit - entry.count);
   const resetSecs = Math.ceil((entry.resetAt - now) / 1000);
 
@@ -103,18 +184,18 @@ export function apiRateLimitMiddleware(
     res.status(429).json({
       statusCode: 429,
       error: 'Too Many Requests',
-      message: isSensitive
-        ? 'Too many attempts on this sensitive action. Please wait before retrying.'
-        : 'Rate limit exceeded. Please slow down your requests.',
+      message: `Rate limit exceeded for ${category}. Please retry after ${resetSecs} seconds.`,
       retryAfter: resetSecs,
     });
     return;
   }
 
-  // Periodic cleanup of stale IPs (every ~1000 requests)
-  if (Math.random() < 0.001) {
-    for (const [key, val] of store.entries()) {
-      if (now > val.resetAt) store.delete(key);
+  // Periodic memory cleanup of expired IPs
+  if (Math.random() < 0.002) {
+    for (const s of [authStore, publicFormStore, newsletterStore, captchaStore, generalStore]) {
+      for (const [key, val] of s.entries()) {
+        if (now > val.resetAt) s.delete(key);
+      }
     }
   }
 

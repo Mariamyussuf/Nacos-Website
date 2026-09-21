@@ -14,8 +14,10 @@ dist/
 # Uploads (user-generated content)
 uploads/images/*
 uploads/pdfs/*
+uploads/form-files/*
 !uploads/images/.gitkeep
 !uploads/pdfs/.gitkeep
+!uploads/form-files/.gitkeep
 
 # IDE
 .idea/

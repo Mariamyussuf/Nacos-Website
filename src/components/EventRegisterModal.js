@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "./Toast";
 import { registerForEvent } from "./api";
+import CaptchaWidget from "./CaptchaWidget";
 
 const DEPARTMENTS = ["Computer Sciences", "Information Technology", "Cyber Security"];
 const LEVELS = ["100 Level", "200 Level", "300 Level", "400 Level"];
@@ -16,6 +17,7 @@ export default function EventRegisterModal({ event, isOpen, onClose }) {
     department: "Computer Sciences",
     level: "100 Level",
   });
+  const [captcha, setCaptcha] = useState(null);
   const [loading, setLoading] = useState(false);
   const [ticketResult, setTicketResult] = useState(null);
 
@@ -27,13 +29,21 @@ export default function EventRegisterModal({ event, isOpen, onClose }) {
       showToast("Please fill in all required fields", "error");
       return;
     }
+    if (!captcha || !captcha.token || !captcha.answer) {
+      showToast("Please complete the security challenge", "error");
+      return;
+    }
 
     setLoading(true);
     try {
-      const res = await registerForEvent(event.id || event.title, {
-        ...form,
-        eventTitle: event.title,
-      });
+      const res = await registerForEvent(
+        event.id || event.title,
+        {
+          ...form,
+          eventTitle: event.title,
+        },
+        captcha,
+      );
 
       if (res.alreadyRegistered) {
         showToast(res.message, "info");
@@ -50,6 +60,7 @@ export default function EventRegisterModal({ event, isOpen, onClose }) {
 
   const handleReset = () => {
     setTicketResult(null);
+    setCaptcha(null);
     setForm({
       fullName: "",
       matricNumber: "",
@@ -234,6 +245,8 @@ export default function EventRegisterModal({ event, isOpen, onClose }) {
                   className="w-full px-3.5 py-2 bg-[#1A1A17] border border-[rgba(255,255,255,0.07)] text-white text-xs rounded-md focus:outline-none focus:border-[#2D7A22]"
                 />
               </div>
+
+              <CaptchaWidget onVerified={setCaptcha} className="my-2" />
 
               <div className="pt-2 flex items-center justify-end gap-3">
                 <button

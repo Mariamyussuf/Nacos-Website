@@ -144,12 +144,20 @@ export const updateBanner = async (bannerData) => {
 
 // ─── Contact Messages & Inquiries ────────────────────────────────────────────
 
-export const sendContactMessage = async (data) => {
+export const sendContactMessage = async (data, captcha = null) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (captcha?.token) {
+    headers['x-captcha-token'] = captcha.token;
+    headers['x-captcha-answer'] = String(captcha.answer);
+  }
   try {
     return await apiFetch(`${API_BASE_URL}/contact`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      headers,
+      body: JSON.stringify({
+        ...data,
+        ...(captcha?.token ? { captchaToken: captcha.token, captchaAnswer: String(captcha.answer) } : {}),
+      }),
     });
   } catch (err) {
     const local = JSON.parse(localStorage.getItem('contact_messages') || '[]');
@@ -369,12 +377,20 @@ export const deleteEvent = async (id) => {
   }
 };
 
-export const registerForEvent = async (eventId, data) => {
+export const registerForEvent = async (eventId, data, captcha = null) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (captcha?.token) {
+    headers['x-captcha-token'] = captcha.token;
+    headers['x-captcha-answer'] = String(captcha.answer);
+  }
   try {
     return await apiFetch(`${API_BASE_URL}/events/${eventId}/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      headers,
+      body: JSON.stringify({
+        ...data,
+        ...(captcha?.token ? { captchaToken: captcha.token, captchaAnswer: String(captcha.answer) } : {}),
+      }),
     });
   } catch (err) {
     const local = JSON.parse(localStorage.getItem('event_registrations') || '[]');
@@ -800,18 +816,44 @@ export const getPublicForm = async (slug) => {
   }
 };
 
-export const submitForm = async (formId, data, files = {}) => {
+// ─── Security & CAPTCHA ──────────────────────────────────────────────────────
+
+export const getCaptchaChallenge = async () => {
+  try {
+    return await apiFetch(`${API_BASE_URL}/captcha/challenge`);
+  } catch (err) {
+    // Graceful offline fallback challenge
+    const a = Math.floor(Math.random() * 12) + 3;
+    const b = Math.floor(Math.random() * 9) + 2;
+    return {
+      challengeId: `local-cap-${Date.now()}`,
+      question: `What is ${a} + ${b}?`,
+      token: btoa(JSON.stringify({ offline: true, a, b, exp: Date.now() + 300000 })),
+      expiresInSeconds: 300,
+    };
+  }
+};
+
+export const submitForm = async (formId, data, files = {}, captcha = {}) => {
   const hasFiles = Object.keys(files).length > 0;
+  const captchaHeaders = {
+    ...(captcha?.token ? { 'X-Captcha-Token': captcha.token } : {}),
+    ...(captcha?.answer ? { 'X-Captcha-Answer': String(captcha.answer) } : {}),
+  };
+
   try {
     if (hasFiles) {
       const formData = new FormData();
       formData.append('data', JSON.stringify(data));
+      if (captcha?.token) formData.append('captchaToken', captcha.token);
+      if (captcha?.answer) formData.append('captchaAnswer', String(captcha.answer));
       for (const [fieldId, file] of Object.entries(files)) {
         formData.append(fieldId, file);
       }
       const res = await fetch(`${API_BASE_URL}/forms/${formId}/submit`, {
         method: 'POST',
         credentials: 'include',
+        headers: captchaHeaders,
         body: formData,
       });
       if (!res.ok) {
@@ -822,8 +864,14 @@ export const submitForm = async (formId, data, files = {}) => {
     }
     return await apiFetch(`${API_BASE_URL}/forms/${formId}/submit`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        ...captchaHeaders,
+      },
+      body: JSON.stringify({
+        ...data,
+        ...(captcha?.token ? { captchaToken: captcha.token, captchaAnswer: captcha.answer } : {}),
+      }),
     });
   } catch (err) {
     // If backend fails (e.g. 405 or offline), save submission in localStorage
@@ -860,3 +908,5 @@ export const submitForm = async (formId, data, files = {}) => {
     };
   }
 };
+
+

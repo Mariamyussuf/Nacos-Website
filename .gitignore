@@ -16,8 +16,10 @@ nacos-backend/dist
 nacos-backend/.env
 nacos-backend/uploads/images/*
 nacos-backend/uploads/pdfs/*
+nacos-backend/uploads/form-files/*
 !nacos-backend/uploads/images/.gitkeep
 !nacos-backend/uploads/pdfs/.gitkeep
+!nacos-backend/uploads/form-files/.gitkeep
 *.db
 *.db-journal
 

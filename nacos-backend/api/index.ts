@@ -7,9 +7,12 @@ import session from 'express-session';
 import passport from 'passport';
 import { migrate } from '../src/database/migrate';
 import { seed } from '../src/database/seed';
+import { validateEnv } from '../src/common/env.validation';
+import { AllExceptionsFilter } from '../src/common/all-exceptions.filter';
 import {
   securityHeadersMiddleware,
   apiRateLimitMiddleware,
+  getCorsOptions,
 } from '../src/common/security.middleware';
 
 const server = express();
@@ -19,7 +22,7 @@ let isInitialized = false;
 server.use(securityHeadersMiddleware);
 server.use(apiRateLimitMiddleware);
 
-server.get('/', (req, res) => {
+server.get('/', (_req, res) => {
   res.json({
     status: 'online',
     message: 'NACOS Bells Chapter API is live & running smoothly 🚀',
@@ -33,11 +36,14 @@ server.get('/', (req, res) => {
       contact: '/api/contact',
       subscribers: '/api/subscribe',
       forms: '/api/forms',
+      captcha: '/api/captcha/challenge',
     },
   });
 });
 
 async function bootstrap() {
+  validateEnv();
+
   try {
     await migrate();
     await seed();
@@ -47,12 +53,13 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
+  // Security & Data-Leakage Protection
+  app.useGlobalFilters(new AllExceptionsFilter());
+
   app.setGlobalPrefix('api');
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN || true,
-    credentials: true,
-  });
+  // Strict CORS Restrictions
+  app.enableCors(getCorsOptions());
 
   app.useGlobalPipes(
     new ValidationPipe({
